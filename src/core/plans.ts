@@ -82,7 +82,7 @@ export type BillingEvent = { id: string; type: "subscription.activated" | "subsc
  */
 export function applyBillingEvent(sub: Subscription | null, ev: BillingEvent, nowIso: string): { sub: Subscription; changed: boolean } {
   const base: Subscription = sub ?? { plan: "free", status: "expired", periodEnd: null, appliedEvents: [], updatedAt: nowIso, lastEventAt: 0 };
-  if (!ev || typeof ev.id !== "string" || !ev.id || !isPlanId(ev.plan)) throw new Error("invalid billing event");
+  if (!ev || typeof ev.id !== "string" || !ev.id || !isPlanId(ev.plan) || !Number.isFinite(ev.occurredAt) || ev.occurredAt < 0) throw new Error("invalid billing event");
   if (base.appliedEvents.includes(ev.id)) return { sub: base, changed: false };
   const seen = [...base.appliedEvents, ev.id].slice(-200);
   if (ev.occurredAt < base.lastEventAt) return { sub: { ...base, appliedEvents: seen }, changed: false };

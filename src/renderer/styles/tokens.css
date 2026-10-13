@@ -1,0 +1,131 @@
+/* Space Studio design tokens. Every component reads from these. */
+:root {
+  /* Color — dark cosmic foundation */
+  --c-space-0: #05060d;   /* deepest background */
+  --c-space-1: #0a0c18;   /* app background */
+  --c-space-2: #10132a;   /* raised panel */
+  --c-space-3: #171b36;   /* hover / inset */
+  --c-space-4: #222744;   /* active / pressed */
+  --c-line: rgba(196, 205, 255, 0.10);
+  --c-line-strong: rgba(196, 205, 255, 0.20);
+
+  --c-text: #eef0fb;          /* ~15:1 on space-1 */
+  --c-text-2: #b4b9d6;        /* ~9:1 */
+  --c-text-3: #8a90b2;        /* ~5.6:1 — still AA for body text */
+
+  --c-white: #ffffff;
+  --c-blue: #6ea8ff;
+  --c-blue-strong: #4d8dff;
+  --c-purple: #a98bff;
+  --c-yellow: #ffd66b;
+  --c-green: #5fd49a;
+  --c-red: #ff7a85;
+
+  --c-blue-soft: rgba(110, 168, 255, 0.14);
+  --c-purple-soft: rgba(169, 139, 255, 0.14);
+  --c-yellow-soft: rgba(255, 214, 107, 0.13);
+  --c-green-soft: rgba(95, 212, 154, 0.13);
+  --c-red-soft: rgba(255, 122, 133, 0.13);
+
+  --c-primary: #f3f5ff;       /* primary pill is near-white on dark */
+  --c-primary-text: #0a0c18;
+  --c-focus: #8ab8ff;
+
+  --c-panel: rgba(16, 19, 42, 0.86);
+  --c-panel-solid: var(--c-space-2);
+  --c-overlay: rgba(3, 4, 10, 0.62);
+
+  /* Spacing (4px grid) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* Type scale */
+  --font: "Montserrat", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, Consolas, monospace;
+  --t-xs: 11px;
+  --t-sm: 12.5px;
+  --t-md: 14px;
+  --t-lg: 16px;
+  --t-xl: 20px;
+  --t-2xl: 26px;
+  --t-3xl: 34px;
+  --lh-tight: 1.2;
+  --lh: 1.55;
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+  --w-bold: 700;
+
+  /* Radii */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 999px;
+
+  /* Borders & elevation */
+  --border: 1px solid var(--c-line);
+  --border-strong: 1px solid var(--c-line-strong);
+  --shadow-pop: 0 18px 48px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
+
+  /* Sizes */
+  --hit: 44px;
+  --hit-sm: 36px;
+  --sidebar-w: 232px;
+  --sidebar-w-collapsed: 68px;
+
+  /* Motion — durations & easings */
+  --dur-instant: 90ms;
+  --dur-fast: 140ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-page: 220ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  /* Spring params (stiffness/damping/mass) — compiled at runtime into linear() easings by lib/motion.ts.
+     Fallbacks below are used until then, or where linear() is unsupported. */
+  --spring-snappy: 520 30 1;
+  --spring-gentle: 260 26 1;
+  --spring-bouncy: 420 18 1;
+  --ease-spring-snappy: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-spring-gentle: cubic-bezier(0.25, 1.1, 0.5, 1);
+  --ease-spring-bouncy: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-spring-snappy: 380ms;
+  --dur-spring-gentle: 520ms;
+  --dur-spring-bouncy: 560ms;
+}
+
+/* Central reduced-motion handling: OS preference or in-app toggle (data-motion on <html>). */
+:root[data-motion="reduced"] {
+  --dur-instant: 0.01ms;
+  --dur-fast: 0.01ms;
+  --dur-base: 0.01ms;
+  --dur-slow: 0.01ms;
+  --dur-page: 0.01ms;
+  --dur-spring-snappy: 0.01ms;
+  --dur-spring-gentle: 0.01ms;
+  --dur-spring-bouncy: 0.01ms;
+}
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

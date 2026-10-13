@@ -84,6 +84,8 @@ test("billing events are idempotent and ordered", () => {
   assert.equal(late.changed, false);
   assert.equal(effectivePlan(late.sub, NOW), "free");
   assert.throws(() => applyBillingEvent(null, { ...ev, plan: "galaxy" as never }, "t"));
+  assert.throws(() => applyBillingEvent(null, { ...ev, occurredAt: Number.NaN }, "t"));
+  assert.throws(() => applyBillingEvent(null, { ...ev, occurredAt: undefined as never }, "t"));
 });
 
 const keplar: Identity = { provider: "keplar", subject: "u1", label: "a@x.co", linkedAt: "", canSignIn: true };
@@ -107,12 +109,16 @@ test("linking: conflicts refused, email never merges, reauth required", async ()
 
 test("unlinking never removes the last sign-in method", () => {
   const last = planUnlink([keplar, roblox("r1")], "keplar", NOW - 1000, NOW);
-  assert.equal(!last.ok && last.code, "last_method");
+  assert.equal(!last.ok && last.code, "managed_by_account");
   const r = planUnlink([keplar, roblox("r1")], "roblox", NOW - 1000, NOW);
   assert.equal(r.ok, true);
   const g: Identity = { provider: "google", subject: "g1", label: null, linkedAt: "", canSignIn: true };
-  assert.equal(planUnlink([keplar, g], "keplar", NOW - 1000, NOW).ok, true);
-  assert.equal(planUnlink([keplar, g], "keplar", null, NOW).ok, false);
+  const k = planUnlink([keplar, g], "keplar", NOW - 1000, NOW);
+  assert.equal(!k.ok && k.code, "managed_by_account");
+  assert.equal(planUnlink([keplar, g], "google", NOW - 1000, NOW).ok, true);
+  assert.equal(planUnlink([keplar, g], "google", null, NOW).ok, false);
+  const onlyGoogle = planUnlink([g, roblox("r1")], "google", NOW - 1000, NOW);
+  assert.equal(!onlyGoogle.ok && onlyGoogle.code, "last_method");
 });
 
 test("routing honors the explicit choice", () => {

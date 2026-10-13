@@ -13,6 +13,7 @@ import { detect } from "./detect";
 import { API_BASE, apiUrl, isAllowedAuthNavigation, isAllowedExternal, validateApiRequest } from "./policy";
 
 const PARTITION = "persist:space-studio";
+const RENDERER_CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 let main: BrowserWindow | null = null;
 const rendererIndex = () => path.join(__dirname, "..", "renderer", "index.html");
 
@@ -97,6 +98,11 @@ app.whenReady().then(() => {
     ses.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));
     ses.setPermissionCheckHandler(() => false);
   }
+
+  // The renderer's CSP as a real header too (frame-ancestors only works from a header). Applies to our file:// page only.
+  session.defaultSession.webRequest.onHeadersReceived({ urls: ["file://*/*"] }, (details, cb) => {
+    cb({ responseHeaders: { ...details.responseHeaders, "Content-Security-Policy": [RENDERER_CSP] } });
+  });
 
   handle("space:api", (_e, req) => api(req));
   handle("space:signIn", async () => {

@@ -31,11 +31,13 @@ export async function planLink(accountId: string, current: Identity[], incoming:
   return { ok: true, identities: [...current, incoming] };
 }
 
-export type UnlinkResult = { ok: true; identities: Identity[] } | { ok: false; code: "reauth_required" | "last_method" | "not_linked"; message: string };
+export type UnlinkResult = { ok: true; identities: Identity[] } | { ok: false; code: "reauth_required" | "last_method" | "not_linked" | "managed_by_account"; message: string };
 
 export function planUnlink(current: Identity[], provider: Provider, authAt: number | null, now: number): UnlinkResult {
   const target = current.find((i) => i.provider === provider);
   if (!target) return { ok: false, code: "not_linked", message: "That account isn't linked." };
+  // The Keplar identity IS the account: it is removed only by deleting the account.
+  if (provider === "keplar") return { ok: false, code: "managed_by_account", message: "Your Keplar account can't be unlinked. To remove it, delete the account." };
   if (!recentlyAuthenticated(authAt, now)) return { ok: false, code: "reauth_required", message: "Sign in again to change linked accounts." };
   const rest = current.filter((i) => i !== target);
   if (target.canSignIn && !rest.some((i) => i.canSignIn)) return { ok: false, code: "last_method", message: "This is your only way to sign in. Link another sign-in method first." };
@@ -45,5 +47,6 @@ export function planUnlink(current: Identity[], provider: Provider, authAt: numb
 export function unlinkBlockedReason(current: Identity[], provider: Provider): string | null {
   const t = current.find((i) => i.provider === provider);
   if (!t) return null;
+  if (provider === "keplar") return "This is your Space Studio account";
   return t.canSignIn && !current.some((i) => i !== t && i.canSignIn) ? "Your only sign-in method" : null;
 }
