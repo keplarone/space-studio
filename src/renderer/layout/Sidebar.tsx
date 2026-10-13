@@ -4,6 +4,7 @@ import { PlanBadge } from "../ui/common";
 import { NAV, useApp } from "../lib/app";
 import { bridge, connected } from "../lib/bridge";
 import { motionPrefs, useUserReduceMotion } from "../lib/motion";
+import markUrl from "../assets/mark.png";
 
 function Settings({ collapsed }: { collapsed: boolean }) {
   const [open, setOpen] = useState(false);
@@ -66,12 +67,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
   return (
     <nav className="sidebar" data-collapsed={collapsed ? "true" : "false"} aria-label="Primary">
       <div className="sidebar__brand">
-        <span className="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <circle cx="12" cy="12" r="4" />
-            <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-24 12 12)" />
-          </svg>
-        </span>
+        <img className="brand-mark" src={markUrl} alt="" width={28} height={28} />
         <span className="sidebar__name">Space Studio<small>by Keplar</small></span>
       </div>
       <ul className="nav" ref={listRef}>

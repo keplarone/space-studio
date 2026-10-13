@@ -35,3 +35,9 @@ test("sign-in window navigation allow-list", () => {
   assert.equal(isAllowedAuthNavigation("https://evil.com"), false);
   assert.equal(isAllowedAuthNavigation("http://keplar.one"), false);
 });
+
+test("the version the app shows matches package.json", async () => {
+  const { readFileSync } = await import("node:fs");
+  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  assert.match(readFileSync("src/main/preload.ts", "utf8"), new RegExp(`version: "${pkg.version.replace(/\./g, "\\.")}"`));
+});

@@ -75,6 +75,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: src
       - uses: actions/download-artifact@v4
         with:
           path: ship
@@ -86,5 +90,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
         run: |
-          gh release create "$TAG" ship/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Space Studio ${TAG#v}" \
-            --notes "First build of Space Studio by Keplar. Installers are not code-signed yet: Windows SmartScreen and macOS Gatekeeper will warn (macOS: right-click → Open). See docs/STATUS.md for what works and what doesn't yet. Verify downloads with SHA256SUMS."
+          notes="src/docs/releases/$TAG.md"
+          test -f "$notes" || { echo "Missing $notes"; exit 1; }
+          gh release create "$TAG" ship/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Space Studio ${TAG#v}" --notes-file "$notes"
