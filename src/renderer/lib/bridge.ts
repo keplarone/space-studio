@@ -83,4 +83,4 @@ export async function openExternal(url: string): Promise<void> {
   if (bridge) await bridge.openExternal(url);
 }
 
-export const PLANS_URL = "https://keplar.one/space-studio#plans";
+export const PLANS_URL = "https://space.keplar.one/#plans";

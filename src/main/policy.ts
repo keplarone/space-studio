@@ -5,7 +5,7 @@
 export const API_BASE = "https://keplar.one";
 const API_PREFIXES = ["/api/space-studio/", "/api/account/sessions", "/api/account/delete", "/api/account/export"];
 const METHODS = new Set(["GET", "POST", "DELETE"]);
-const EXTERNAL_HOSTS = ["keplar.one", "www.keplar.one", "roblox.com", "www.roblox.com", "create.roblox.com", "blender.org", "www.blender.org", "docs.blender.org"];
+const EXTERNAL_HOSTS = ["keplar.one", "www.keplar.one", "space.keplar.one", "roblox.com", "www.roblox.com", "create.roblox.com", "blender.org", "www.blender.org", "docs.blender.org"];
 
 export type ApiRequest = { method: "GET" | "POST" | "DELETE"; path: string; body?: unknown };
 

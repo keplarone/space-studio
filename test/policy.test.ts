@@ -23,6 +23,7 @@ test("api URLs stay on keplar.one", () => {
 
 test("external links: https and allow-listed hosts only", () => {
   assert.ok(isAllowedExternal("https://keplar.one/space-studio#plans"));
+  assert.ok(isAllowedExternal("https://space.keplar.one/#plans"));
   assert.ok(isAllowedExternal("https://create.roblox.com/docs"));
   for (const u of ["http://keplar.one", "file:///etc/passwd", "javascript:alert(1)", "https://keplar.one.evil.com", "https://user:pw@keplar.one", "smb://x", 42])
     assert.equal(isAllowedExternal(u), false, String(u));
