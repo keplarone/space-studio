@@ -67,10 +67,10 @@ export async function api<T>(method: SpaceMethod, path: string, body?: unknown):
 }
 
 export function errorMessage(status: number, data: unknown, fallback = "Something went wrong."): string {
-  if (status === 0) return "Not connected — run inside the Space Studio app.";
+  if (status === 0) return "Not connected. Open this in the Space Studio app.";
   const d = data as { error?: unknown } | null;
   if (d && typeof d.error === "string" && d.error) return d.error;
-  if (status === 401) return "You're signed out. Sign in to continue.";
+  if (status === 401) return "You are signed out. Sign in to continue.";
   return `${fallback} (HTTP ${status})`;
 }
 

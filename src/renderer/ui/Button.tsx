@@ -1,34 +1,28 @@
-import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { CheckResolve, Icon, Spinner, type IconName } from "./icons";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "icon";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonStatus = "idle" | "loading" | "success" | "error";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: "md" | "sm";
-  icon?: IconName;
-  /** Visual status. `success` shows a check; `error` shakes once. */
+  /** `loading` shows a spinner ring next to the label; `success` / `error` swap the label. */
   status?: ButtonStatus;
-  /** Accessible label (required for icon-only buttons). */
+  /** Label shown while `status` is `success`. */
+  successLabel?: string;
+  /** Label shown while `status` is `error`. Defaults to the normal label. */
+  errorLabel?: string;
+  /** Accessible name, when the visible text alone is ambiguous. */
   label?: string;
   children?: ReactNode;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "secondary", size = "md", icon, status = "idle", label, className, children, disabled, type = "button", ...rest },
+  { variant = "secondary", size = "md", status = "idle", successLabel = "Done", errorLabel, label, className, children, disabled, type = "button", ...rest },
   ref,
 ) {
-  const [shakeKey, setShakeKey] = useState(0);
-  const prev = useRef(status);
-  useEffect(() => {
-    if (status === "error" && prev.current !== "error") setShakeKey((k) => k + 1);
-    prev.current = status;
-  }, [status]);
-
   const busy = status === "loading";
-  const content =
-    status === "loading" ? <Spinner /> : status === "success" ? <CheckResolve /> : icon ? <Icon name={icon} /> : null;
+  const text = status === "success" ? successLabel : status === "error" && errorLabel ? errorLabel : children;
 
   return (
     <button
@@ -36,17 +30,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       className={["btn", `btn--${variant}`, `btn--${size}`, className].filter(Boolean).join(" ")}
       data-status={status}
-      data-shake={shakeKey > 0 ? shakeKey % 2 : undefined}
       disabled={disabled}
       aria-disabled={busy || undefined}
       aria-busy={busy || undefined}
       aria-label={label}
-      title={variant === "icon" ? label : undefined}
       {...rest}
       onClick={busy ? undefined : rest.onClick}
     >
-      {content && <span className="btn__icon">{content}</span>}
-      {variant !== "icon" && children != null && <span className="btn__label">{children}</span>}
+      {busy && <span className="btn__spinner" aria-hidden="true" />}
+      {text != null && <span className="btn__label">{text}</span>}
     </button>
   );
 });

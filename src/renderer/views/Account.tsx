@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Dialog, Icon, LoadingBlock } from "../ui";
+import { Button, Dialog, LoadingBlock } from "../ui";
 import { AccountGate, Notice, Panel, ViewHeader } from "../ui/common";
 import { formatDate, formatDay, useApp } from "../lib/app";
 import { api, errorCode, errorMessage } from "../lib/bridge";
 import type { Identity } from "../lib/types";
-import type { IconName } from "../ui/icons";
 
-const PROVIDER: Record<Identity["provider"], { name: string; icon: IconName }> = {
-  keplar: { name: "Keplar email", icon: "keplar" },
-  google: { name: "Google", icon: "google" },
-  roblox: { name: "Roblox", icon: "roblox" },
+const PROVIDER: Record<Identity["provider"], string> = {
+  keplar: "Keplar email",
+  google: "Google",
+  roblox: "Roblox",
 };
 
 const UNLINK_CODES: Record<string, string> = {
@@ -32,7 +31,7 @@ function Identities() {
     setBusy(null);
     if (r.status === 200 && r.data) {
       setIds(r.data.identities);
-      setMsg({ tone: "success", text: `${PROVIDER[p].name} unlinked.` });
+      setMsg({ tone: "success", text: `${PROVIDER[p]} unlinked.` });
       void refreshMe();
     } else {
       const code = errorCode(r.data);
@@ -60,31 +59,29 @@ function Identities() {
     <Panel title="Linked sign-in methods" id="acct-ids">
       <ul className="list">
         {ids.map((i) => {
-          const meta = PROVIDER[i.provider] ?? { name: i.provider, icon: "link" as IconName };
+          const name = PROVIDER[i.provider] ?? i.provider;
           return (
             <li key={i.provider} className="list__item">
-              <Icon name={meta.icon} size={20} />
               <div className="list__main">
-                <strong>{meta.name}</strong>
+                <strong>{name}</strong>
                 <span className="muted small">
                   {i.linked ? <>{i.label ?? "Connected"}{i.linkedAt ? ` · linked ${formatDay(i.linkedAt)}` : ""}</> : "Not connected"}
                 </span>
                 {i.linked && !i.canUnlink && i.unlinkBlockedReason && <span className="muted small">{i.unlinkBlockedReason}</span>}
               </div>
-              <span className="chip" data-tone={i.linked ? "ok" : undefined}>{i.linked ? "Connected" : "Not connected"}</span>
               {i.linked ? (
-                <Button size="sm" variant="secondary" icon="unlink" disabled={!i.canUnlink || busy !== null} status={busy === i.provider ? "loading" : "idle"}
+                <Button size="sm" variant="secondary" label={`Unlink ${name}`} disabled={!i.canUnlink || busy !== null} status={busy === i.provider ? "loading" : "idle"}
                   title={!i.canUnlink ? i.unlinkBlockedReason ?? undefined : undefined} onClick={() => void unlink(i.provider)}>
                   Unlink
                 </Button>
               ) : i.provider === "roblox" ? (
                 me?.providers.roblox ? (
-                  <Button size="sm" variant="secondary" icon="link" disabled={busy !== null} status={busy === "roblox" ? "loading" : "idle"} onClick={() => void linkRoblox()}>Link</Button>
+                  <Button size="sm" variant="secondary" label="Link Roblox" disabled={busy !== null} status={busy === "roblox" ? "loading" : "idle"} onClick={() => void linkRoblox()}>Link</Button>
                 ) : (
-                  <span className="muted small">Roblox sign-in isn't configured on the server yet</span>
+                  <span className="muted small">Not configured on the server yet</span>
                 )
               ) : i.provider === "google" && !me?.providers.google ? (
-                <span className="muted small">Not configured on the server</span>
+                <span className="muted small">Not configured on the server yet</span>
               ) : (
                 <span className="muted small">Link from the sign-in window</span>
               )}
@@ -142,11 +139,11 @@ function Sessions() {
       title="Active sessions"
       id="acct-sessions"
       actions={state.kind === "ready" && state.list.length > 1 ? (
-        <Button size="sm" variant="secondary" icon="signOut" status={busy === "all" ? "loading" : "idle"} disabled={busy !== null} onClick={() => void signOutAll()}>Sign out all</Button>
+        <Button size="sm" variant="secondary" status={busy === "all" ? "loading" : "idle"} disabled={busy !== null} onClick={() => void signOutAll()}>Sign out other sessions</Button>
       ) : undefined}
     >
       {state.kind === "loading" ? <LoadingBlock label="Loading sessions" /> : state.kind === "error" ? <Notice tone="error">{state.msg}</Notice> : state.list.length === 0 ? (
-        <p className="muted">No active sessions reported.</p>
+        <p className="muted">The server reported no active sessions.</p>
       ) : (
         <ul className="list">
           {state.list.map((s) => {
@@ -155,15 +152,14 @@ function Sessions() {
             const created = str(s.createdAt);
             return (
               <li key={s.id} className="list__item">
-                <Icon name="monitor" size={20} />
                 <div className="list__main">
                   <strong className="ellipsis">{device}</strong>
                   <span className="muted small">
                     {[str(s.ip), str(s.location), created && `started ${formatDate(created)}`, seen && `last active ${formatDate(seen)}`].filter(Boolean).join(" · ") || s.id}
                   </span>
                 </div>
-                {s.current ? <span className="chip" data-tone="ok">This device</span> : (
-                  <Button size="sm" variant="ghost" icon="signOut" status={busy === s.id ? "loading" : "idle"} disabled={busy !== null} onClick={() => void signOutOne(s.id)}>Sign out</Button>
+                {s.current ? <span className="muted small">This device</span> : (
+                  <Button size="sm" variant="ghost" label={`Sign out ${device}`} status={busy === s.id ? "loading" : "idle"} disabled={busy !== null} onClick={() => void signOutOne(s.id)}>Sign out</Button>
                 )}
               </li>
             );
@@ -198,8 +194,8 @@ function Export() {
   };
   return (
     <Panel title="Your data" id="acct-export">
-      <p className="muted">Download a copy of the data associated with your Keplar account as JSON.</p>
-      <div><Button variant="secondary" icon="download" status={status} onClick={() => void run()}>Export my data</Button></div>
+      <p className="muted">Download the data held for your Keplar account as a JSON file.</p>
+      <div><Button variant="secondary" status={status} successLabel="Downloaded" errorLabel="Try again" onClick={() => void run()}>Export my data</Button></div>
       {err && <Notice tone="error">{err}</Notice>}
     </Panel>
   );
@@ -263,7 +259,7 @@ function DeleteAccount() {
             <span className="field__label">Type your account email{email ? <> (<span className="mono">{email}</span>)</> : ""} to confirm</span>
             <input className="input" type="email" autoComplete="off" spellCheck={false} value={typed} onChange={(e) => setTyped(e.target.value)} />
           </label>
-          <div><Button variant="danger" icon="trash" disabled={!matches} onClick={() => setConfirm(true)}>Delete account…</Button></div>
+          <div><Button variant="danger" disabled={!matches} onClick={() => setConfirm(true)}>Delete account…</Button></div>
         </div>
       )}
       {err && <Notice tone="error">{err}</Notice>}
@@ -271,7 +267,7 @@ function DeleteAccount() {
         <p>This schedules permanent deletion of <strong className="mono">{email}</strong> and everything listed above. Billing and legal records may be retained.</p>
         <div className="row row--end">
           <Button variant="ghost" onClick={() => setConfirm(false)} autoFocus>Keep my account</Button>
-          <Button variant="danger" icon="trash" status={busy ? "loading" : "idle"} onClick={() => void schedule()}>Yes, delete my account</Button>
+          <Button variant="danger" status={busy ? "loading" : "idle"} onClick={() => void schedule()}>Delete my account</Button>
         </div>
       </Dialog>
     </section>

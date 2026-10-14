@@ -1,39 +1,36 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { Button, Icon, Popover, Toggle, Tooltip } from "../ui";
-import { PlanBadge } from "../ui/common";
+import { Button, Popover, Toggle } from "../ui";
 import { NAV, useApp } from "../lib/app";
 import { bridge, connected } from "../lib/bridge";
 import { motionPrefs, useUserReduceMotion } from "../lib/motion";
 import markUrl from "../assets/mark.png";
 
-function Settings({ collapsed }: { collapsed: boolean }) {
+function Settings() {
   const [open, setOpen] = useState(false);
   const anchor = useRef<HTMLButtonElement>(null);
   const [reduce, setReduce] = useUserReduceMotion();
   const { me, signOut, signIn } = useApp();
   return (
     <>
-      <button ref={anchor} type="button" className="nav__item nav__item--settings" aria-haspopup="dialog" aria-expanded={open}
-        aria-label={collapsed ? "Settings" : undefined} onClick={() => setOpen((o) => !o)}>
-        <Icon name="settings" size={18} />
-        <span className="nav__label">Settings</span>
+      <button ref={anchor} type="button" className="nav__item" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        Settings
       </button>
       <Popover open={open} onClose={() => setOpen(false)} anchorRef={anchor} label="Settings" prefer="top" width={300}>
         <div className="settings">
           <Toggle
             label="Reduce motion"
-            description={motionPrefs.osReduced() ? "Your system already asks for reduced motion." : "Minimise animations and stop the starfield."}
+            description={motionPrefs.osReduced() ? "Your system already asks for reduced motion." : "Turns off animations and stops the starfield."}
             checked={reduce}
             onChange={setReduce}
           />
           <div className="settings__sep" />
           {me?.signedIn ? (
-            <Button variant="secondary" icon="signOut" onClick={() => { setOpen(false); void signOut(); }}>Sign out</Button>
+            <Button variant="secondary" onClick={() => { setOpen(false); void signOut(); }}>Sign out</Button>
           ) : (
-            <Button variant="secondary" icon="user" disabled={!connected} onClick={() => { setOpen(false); void signIn(); }}>Sign in</Button>
+            <Button variant="secondary" disabled={!connected} onClick={() => { setOpen(false); void signIn(); }}>Sign in</Button>
           )}
-          <p className="muted small settings__ver">
-            Space Studio {bridge ? `v${bridge.version} · ${bridge.platform}` : "(not connected)"}
+          <p className="muted small">
+            Space Studio {bridge ? `${bridge.version} on ${bridge.platform}` : "(not connected)"}
           </p>
         </div>
       </Popover>
@@ -41,7 +38,7 @@ function Settings({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+export function Sidebar() {
   const { view, navigate, me } = useApp();
   const listRef = useRef<HTMLUListElement>(null);
   const [ind, setInd] = useState<{ y: number; h: number } | null>(null);
@@ -56,7 +53,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
     const ro = new ResizeObserver(measure);
     if (listRef.current) ro.observe(listRef.current);
     return () => ro.disconnect();
-  }, [view, collapsed]);
+  }, [view]);
 
   const groups: { key: "main" | "work" | "account"; label: string }[] = [
     { key: "main", label: "General" },
@@ -65,39 +62,36 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
   ];
 
   return (
-    <nav className="sidebar" data-collapsed={collapsed ? "true" : "false"} aria-label="Primary">
+    <nav className="sidebar" aria-label="Primary">
       <div className="sidebar__brand">
-        <img className="brand-mark" src={markUrl} alt="" width={28} height={28} />
+        <img className="brand-mark" src={markUrl} alt="" width={24} height={24} />
         <span className="sidebar__name">Space Studio<small>by Keplar</small></span>
       </div>
       <ul className="nav" ref={listRef}>
         {ind && <li className="nav__indicator" aria-hidden="true" style={{ transform: `translateY(${ind.y}px)`, height: ind.h }} />}
         {groups.map((g) => (
           <li key={g.key} className="nav__group">
-            <span className="nav__group-label">{g.label}</span>
-            <ul>
+            <span className="nav__group-label" id={`nav-${g.key}`}>{g.label}</span>
+            <ul aria-labelledby={`nav-${g.key}`}>
               {NAV.filter((n) => n.group === g.key).map((n) => {
-                const btn = (
-                  <button type="button" className="nav__item" data-id={n.id} aria-current={view === n.id ? "page" : undefined}
-                    aria-label={collapsed ? n.label : undefined} onClick={() => navigate(n.id)}>
-                    <Icon name={n.icon} size={18} />
-                    <span className="nav__label">{n.label}</span>
-                    {n.id === "roblox" && me?.signedIn && me.robloxRequired && !me.robloxLinked && <Icon name="lock" size={14} className="nav__lock" label="Locked" />}
-                  </button>
+                const locked = n.id === "roblox" && !!me?.signedIn && me.robloxRequired && !me.robloxLinked;
+                return (
+                  <li key={n.id}>
+                    <button type="button" className="nav__item" data-id={n.id} aria-current={view === n.id ? "page" : undefined}
+                      aria-label={locked ? `${n.label} (locked until Roblox is linked)` : undefined} onClick={() => navigate(n.id)}>
+                      {n.label}
+                      {locked && <span className="nav__note" aria-hidden="true">Locked</span>}
+                    </button>
+                  </li>
                 );
-                return <li key={n.id}>{collapsed ? <Tooltip text={n.label} side="right">{btn}</Tooltip> : btn}</li>;
               })}
             </ul>
           </li>
         ))}
       </ul>
       <div className="sidebar__foot">
-        {!collapsed && me?.signedIn && <div className="sidebar__plan"><PlanBadge plan={me.plan.id} name={me.plan.name} /></div>}
-        <Settings collapsed={collapsed} />
-        <button type="button" className="nav__item" onClick={onToggle} aria-expanded={!collapsed} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
-          <Icon name={collapsed ? "chevronRight" : "chevronLeft"} size={18} />
-          <span className="nav__label">Collapse</span>
-        </button>
+        {me?.signedIn && <p className="sidebar__plan">{me.plan.name} plan</p>}
+        <Settings />
       </div>
     </nav>
   );

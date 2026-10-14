@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { Button, Chevron } from "../ui";
+import { Button } from "../ui";
 import { activity } from "../lib/bridge";
 
 export function ActivityPanel({ open, onToggle }: { open: boolean; onToggle: () => void }) {
@@ -9,7 +9,7 @@ export function ActivityPanel({ open, onToggle }: { open: boolean; onToggle: () 
     <section className="activity" data-open={open ? "true" : "false"} aria-label="Request activity">
       <div className="activity__bar">
         <button type="button" className="activity__toggle" aria-expanded={open} aria-controls="activity-list" onClick={onToggle}>
-          <Chevron open={open} size={14} />
+          <span className="caret" data-open={open ? "true" : "false"} aria-hidden="true" />
           <span>Activity</span>
           <span className="muted small">{entries.length} request{entries.length === 1 ? "" : "s"}{pending ? ` · ${pending} pending` : ""}</span>
         </button>

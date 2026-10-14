@@ -32,8 +32,8 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
     <figure className="code">
       <figcaption className="code__bar">
         <span>{lang || "code"}</span>
-        <Button size="sm" variant="ghost" icon="copy" status={status} onClick={copy} aria-live="polite">
-          {status === "success" ? "Copied" : status === "error" ? "Copy failed" : "Copy"}
+        <Button size="sm" variant="ghost" status={status} successLabel="Copied" errorLabel="Copy failed" onClick={copy} aria-live="polite">
+          Copy
         </Button>
       </figcaption>
       <pre><code>{code}</code></pre>

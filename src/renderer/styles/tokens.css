@@ -1,17 +1,17 @@
 /* Space Studio design tokens. Every component reads from these. */
 :root {
   /* Color — dark cosmic foundation */
-  --c-space-0: #05060d;   /* deepest background */
-  --c-space-1: #0a0c18;   /* app background */
-  --c-space-2: #10132a;   /* raised panel */
-  --c-space-3: #171b36;   /* hover / inset */
-  --c-space-4: #222744;   /* active / pressed */
-  --c-line: rgba(196, 205, 255, 0.10);
-  --c-line-strong: rgba(196, 205, 255, 0.20);
+  --c-space-0: #000000;   /* deepest background */
+  --c-space-1: #000000;   /* app background */
+  --c-space-2: #0a0a0c;   /* raised panel */
+  --c-space-3: #141417;   /* hover / inset */
+  --c-space-4: #1e1e23;   /* active / pressed */
+  --c-line: rgba(255, 255, 255, 0.08);
+  --c-line-strong: rgba(255, 255, 255, 0.16);
 
-  --c-text: #eef0fb;          /* ~15:1 on space-1 */
-  --c-text-2: #b4b9d6;        /* ~9:1 */
-  --c-text-3: #8a90b2;        /* ~5.6:1 — still AA for body text */
+  --c-text: #f4f4f6;          /* ~19:1 on black */
+  --c-text-2: #b3b3bb;        /* ~10:1 */
+  --c-text-3: #8a8a94;        /* ~6:1, AA for body text */
 
   --c-white: #ffffff;
   --c-blue: #6ea8ff;
@@ -27,13 +27,13 @@
   --c-green-soft: rgba(95, 212, 154, 0.13);
   --c-red-soft: rgba(255, 122, 133, 0.13);
 
-  --c-primary: #f3f5ff;       /* primary pill is near-white on dark */
-  --c-primary-text: #0a0c18;
+  --c-primary: #ffffff;       /* primary button is white on black */
+  --c-primary-text: #000000;
   --c-focus: #8ab8ff;
 
-  --c-panel: rgba(16, 19, 42, 0.86);
+  --c-panel: rgba(6, 6, 8, 0.9);
   --c-panel-solid: var(--c-space-2);
-  --c-overlay: rgba(3, 4, 10, 0.62);
+  --c-overlay: rgba(0, 0, 0, 0.7);
 
   /* Spacing (4px grid) */
   --s-1: 4px;
@@ -79,7 +79,6 @@
   --hit: 44px;
   --hit-sm: 36px;
   --sidebar-w: 232px;
-  --sidebar-w-collapsed: 68px;
 
   /* Motion — durations & easings */
   --dur-instant: 90ms;

@@ -68,7 +68,7 @@ async function signedIn(): Promise<boolean> {
 function authWindow(start: string, done: (url: string) => boolean): Promise<string | null> {
   return new Promise((resolve) => {
     const win = new BrowserWindow({
-      parent: main ?? undefined, modal: !!main, width: 520, height: 720, title: "Space Studio — Sign in", backgroundColor: "#070814",
+      parent: main ?? undefined, modal: !!main, width: 520, height: 720, title: "Space Studio — Sign in", backgroundColor: "#000000",
       webPreferences: { partition: PARTITION, sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true },
     });
     let finished: string | null = null;
@@ -83,7 +83,7 @@ function authWindow(start: string, done: (url: string) => boolean): Promise<stri
 
 function createWindow() {
   main = new BrowserWindow({
-    width: 1440, height: 900, minWidth: 960, minHeight: 620, show: false, title: "Space Studio", backgroundColor: "#05060f",
+    width: 1440, height: 900, minWidth: 960, minHeight: 620, show: false, title: "Space Studio", backgroundColor: "#000000",
     webPreferences: { preload: path.join(__dirname, "preload.js"), sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true, spellcheck: false },
   });
   harden(main.webContents, () => false);

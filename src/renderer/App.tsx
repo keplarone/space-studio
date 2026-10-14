@@ -5,7 +5,7 @@ import { AiPanel, AI_MAX, AI_MIN } from "./layout/AiPanel";
 import { ActivityPanel } from "./layout/ActivityPanel";
 import { Button } from "./ui";
 import { AppProvider, NAV, useApp, type ViewId } from "./lib/app";
-import { load, save } from "./lib/storage";
+import { load, remove, save } from "./lib/storage";
 import { useReducedMotion } from "./lib/motion";
 import { Home } from "./views/Home";
 import { Workspace } from "./views/Workspace";
@@ -84,12 +84,11 @@ function Views() {
 }
 
 function Shell() {
-  const [collapsed, setCollapsed] = useState<boolean>(() => load("sidebarCollapsed", false));
   const [aiOpen, setAiOpen] = useState<boolean>(() => load("aiOpen", true));
   const [aiWidth, setAiWidth] = useState<number>(() => Math.max(AI_MIN, Math.min(AI_MAX, load("aiWidth", 340))));
   const [actOpen, setActOpen] = useState<boolean>(() => load("activityOpen", false));
 
-  useEffect(() => save("sidebarCollapsed", collapsed), [collapsed]);
+  useEffect(() => remove("sidebarCollapsed"), []); // the sidebar no longer collapses; drop the old preference
   useEffect(() => save("aiOpen", aiOpen), [aiOpen]);
   useEffect(() => save("activityOpen", actOpen), [actOpen]);
   useEffect(() => {
@@ -98,14 +97,14 @@ function Shell() {
   }, [aiWidth]);
 
   return (
-    <div className="shell" data-sidebar={collapsed ? "collapsed" : "expanded"}>
+    <div className="shell">
       <a className="skip-link" href="#main">Skip to content</a>
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+      <Sidebar />
       <div className="center">
         <main id="main" className="main" tabIndex={-1}>
           {!aiOpen && (
             <div className="main__tools">
-              <Button size="sm" variant="ghost" icon="panelRight" onClick={() => setAiOpen(true)}>Assistant</Button>
+              <Button size="sm" variant="ghost" onClick={() => setAiOpen(true)}>Show assistant</Button>
             </div>
           )}
           <Views />

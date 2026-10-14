@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Icon } from "../ui";
+import { Button } from "../ui";
 import { AccountGate, EmptyState, Notice, ViewHeader } from "../ui/common";
 import { Chat } from "../chat/Chat";
 import { useApp } from "../lib/app";
@@ -33,18 +33,17 @@ export function Workspace({ kind }: { kind: "roblox" | "blender" }) {
       {me?.signedIn &&
         (locked ? (
           <EmptyState
-            icon="lock"
-            title="Connect Roblox to unlock this workspace"
+            title="Link Roblox to use this workspace"
             actions={
               me.providers.roblox ? (
-                <Button variant="primary" icon="link" status={link.state === "loading" ? "loading" : link.state === "error" ? "error" : "idle"} onClick={() => void connectRoblox()}>
-                  Connect Roblox
+                <Button variant="primary" status={link.state === "loading" ? "loading" : link.state === "error" ? "error" : "idle"} errorLabel="Try again" onClick={() => void connectRoblox()}>
+                  Link Roblox
                 </Button>
               ) : undefined
             }
           >
-            <p>The Roblox workspace requires a linked Roblox account.</p>
-            {!me.providers.roblox && <Notice tone="warn">Roblox sign-in isn't configured on the server yet, so linking isn't possible right now.</Notice>}
+            <p>The Roblox Studio workspace needs a linked Roblox account.</p>
+            {!me.providers.roblox && <Notice tone="warn">Roblox sign-in is not configured on the server yet, so linking is not possible right now.</Notice>}
             {link.state === "error" && <Notice tone="error">{link.msg}</Notice>}
           </EmptyState>
         ) : (
@@ -53,14 +52,14 @@ export function Workspace({ kind }: { kind: "roblox" | "blender" }) {
               workspace={kind}
               placeholder={
                 kind === "roblox"
-                  ? "Ask about Luau, DataStores, RemoteEvents, UI, performance — paste code to review."
-                  : "Ask about bpy scripts, geometry nodes, add-ons, rendering — paste code to review."
+                  ? "Ask about Luau, DataStores, RemoteEvents, UI or performance, or paste code to review."
+                  : "Ask about bpy scripts, geometry nodes, add-ons or rendering, or paste code to review."
               }
             />
           </div>
         ))}
       {me?.signedIn && !locked && kind === "roblox" && me.robloxLinked && (
-        <p className="muted small"><Icon name="check" size={14} /> Roblox account linked.</p>
+        <p className="muted small">Roblox account linked</p>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Button, Icon } from "../ui";
+import { Button } from "../ui";
 import { Notice } from "../ui/common";
 import { useApp, uid } from "../lib/app";
 import { api, connected, errorCode, errorMessage, openExternal, PLANS_URL } from "../lib/bridge";
@@ -114,17 +114,14 @@ export function Chat({ workspace, compact = false, placeholder }: { workspace: W
     <div className="chat" data-compact={compact ? "true" : "false"}>
       <div className="chat__list" ref={listRef} role="log" aria-live="polite" aria-label="Conversation">
         {!chat || chat.messages.length === 0 ? (
-          <div className="chat__empty">
-            <Icon name="sparkle" size={20} />
-            <p>{placeholder ?? "Ask anything about your project."}</p>
-          </div>
+          <p className="chat__empty">{placeholder ?? "Ask about your project."}</p>
         ) : (
           chat.messages.map((m) => (
             <article key={m.id} className="msg" data-role={m.role}>
               <header className="msg__head">
                 <span className="msg__who">{m.role === "user" ? "You" : m.served?.name ?? "Assistant"}</span>
                 {m.served && m.requested && m.served.id !== m.requested && (
-                  <span className="chip">requested {modelName(m.requested)}</span>
+                  <span className="msg__requested">(requested {modelName(m.requested)})</span>
                 )}
               </header>
               <MessageBody text={m.content} />
@@ -138,9 +135,8 @@ export function Chat({ workspace, compact = false, placeholder }: { workspace: W
               )}
               {m.escalation?.suggested && m.escalation.to && !dismissed.has(m.id) && m.id === chat.messages[chat.messages.length - 1]?.id && (
                 <div className="escalation" role="group" aria-label="Model suggestion">
-                  <Icon name="sparkle" size={14} />
                   <span>
-                    {modelName(m.escalation.to)} may handle this better{m.escalation.reason ? ` — ${m.escalation.reason}` : "."}
+                    {modelName(m.escalation.to)} may handle this better{m.escalation.reason ? `: ${m.escalation.reason}` : ""}
                   </span>
                   <Button size="sm" variant="secondary" onClick={() => retryWith(m.escalation!.to!)}
                     disabled={!models.find((x) => x.id === m.escalation!.to)?.available}>
@@ -165,7 +161,7 @@ export function Chat({ workspace, compact = false, placeholder }: { workspace: W
           <Notice tone="error">
             {error.message}
             {error.status === 401 && <> <Button size="sm" variant="secondary" onClick={() => void signIn()}>Sign in</Button></>}
-            {error.status === 402 && <> <Button size="sm" variant="secondary" icon="external" onClick={() => void openExternal(PLANS_URL)}>See plans</Button></>}
+            {error.status === 402 && <> <Button size="sm" variant="secondary" onClick={() => void openExternal(PLANS_URL)}>See plans</Button></>}
           </Notice>
         </div>
       )}
@@ -180,16 +176,16 @@ export function Chat({ workspace, compact = false, placeholder }: { workspace: W
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKey}
-          placeholder={!connected ? "Not connected — run inside the Space Studio app" : signedOut ? "Sign in to chat" : "Message… (Enter to send, Shift+Enter for a new line)"}
+          placeholder={!connected ? "Not connected. Open this in the Space Studio app" : signedOut ? "Sign in to chat" : "Message (Enter to send, Shift+Enter for a new line)"}
           disabled={!connected || !!signedOut}
         />
         <div className="composer__bar">
           {models.length > 0 ? <ModelSelector models={models} value={model} onChange={setModel} offline={!fromServer} /> : <span className="muted">No models loaded</span>}
           <span className="composer__spacer" />
           {chat && chat.messages.length > 0 && (
-            <Button size="sm" variant="ghost" icon="plus" onClick={() => newChat(workspace, model)}>New chat</Button>
+            <Button size="sm" variant="ghost" onClick={() => newChat(workspace, model)}>New chat</Button>
           )}
-          <Button type="submit" variant="primary" icon="arrowUp" status={pending ? "loading" : "idle"} disabled={!draft.trim() || !connected || !!signedOut}>
+          <Button type="submit" variant="primary" status={pending ? "loading" : "idle"} disabled={!draft.trim() || !connected || !!signedOut}>
             Send
           </Button>
         </div>

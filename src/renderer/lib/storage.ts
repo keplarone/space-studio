@@ -15,3 +15,11 @@ export function save(key: string, value: unknown): void {
     /* storage unavailable: keep in-memory state only */
   }
 }
+
+export function remove(key: string): void {
+  try {
+    localStorage.removeItem(`space-studio:${key}`);
+  } catch {
+    /* storage unavailable: nothing to remove */
+  }
+}

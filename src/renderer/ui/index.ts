@@ -2,8 +2,6 @@ export * from "./Button";
 export * from "./Toggle";
 export * from "./SegmentedControl";
 export * from "./Popover";
-export * from "./Tooltip";
 export * from "./Skeleton";
 export * from "./Disclosure";
 export * from "./Dialog";
-export * from "./icons";

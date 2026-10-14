@@ -1,5 +1,5 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from "react";
-import { Button, Icon } from "../ui";
+import { Button } from "../ui";
 import { NotConnected } from "../ui/common";
 import { Chat } from "../chat/Chat";
 import { NAV, useApp } from "../lib/app";
@@ -35,9 +35,9 @@ function WorkspaceSummary({ ws }: { ws: "roblox" | "blender" }) {
       {model && (
         <>
           <h3 className="ai-summary__title">Selected model</h3>
-          <p className="small"><strong>{model.name}</strong> — {model.tagline}</p>
+          <p className="small"><strong>{model.name}</strong>: {model.tagline}</p>
           <p className="muted small">{model.creditNote}</p>
-          <p className="muted small">Runs on {model.provider} {model.underlyingModel}. Specialized configuration on Claude — not fine-tuned.</p>
+          <p className="muted small">Runs on {model.provider} {model.underlyingModel} with a Space Studio configuration. Not fine-tuned.</p>
         </>
       )}
     </div>
@@ -87,12 +87,11 @@ export function AiPanel({ width, setWidth, onClose }: { width: number; setWidth:
         onKeyDown={onKey}
       />
       <header className="ai-panel__head">
-        <Icon name="sparkle" size={16} />
         <div className="ai-panel__title">
           <strong>Assistant</strong>
           <span className="muted small">Context: {label}</span>
         </div>
-        <Button variant="icon" icon="close" label="Close assistant panel" onClick={onClose} />
+        <Button size="sm" variant="ghost" label="Close assistant panel" onClick={onClose}>Close</Button>
       </header>
       <div className="ai-panel__body">
         {!connected ? (
@@ -100,7 +99,7 @@ export function AiPanel({ width, setWidth, onClose }: { width: number; setWidth:
         ) : isWs ? (
           <WorkspaceSummary ws={view} />
         ) : me?.signedIn ? (
-          <Chat workspace="general" compact placeholder={`Quick questions while you're in ${label}.`} />
+          <Chat workspace="general" compact placeholder="Ask a question" />
         ) : (
           <p className="pad muted small">Sign in to use the assistant.</p>
         )}

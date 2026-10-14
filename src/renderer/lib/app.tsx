@@ -5,18 +5,18 @@ import type { ChatSession, Me, ModelId, Workspace } from "./types";
 export type ViewId =
   | "home" | "projects" | "roblox" | "blender" | "solar" | "assets" | "research" | "cloud" | "history" | "account" | "billing";
 
-export const NAV: { id: ViewId; label: string; icon: import("../ui/icons").IconName; group: "main" | "work" | "account" }[] = [
-  { id: "home", label: "Home", icon: "home", group: "main" },
-  { id: "projects", label: "Projects", icon: "folder", group: "main" },
-  { id: "roblox", label: "Roblox Studio", icon: "roblox", group: "work" },
-  { id: "blender", label: "Blender", icon: "blender", group: "work" },
-  { id: "solar", label: "Solar Smart", icon: "sun", group: "work" },
-  { id: "assets", label: "Assets", icon: "box", group: "work" },
-  { id: "research", label: "Research", icon: "search", group: "work" },
-  { id: "cloud", label: "Cloud", icon: "cloud", group: "work" },
-  { id: "history", label: "Task history", icon: "history", group: "work" },
-  { id: "account", label: "Account & Security", icon: "shield", group: "account" },
-  { id: "billing", label: "Billing", icon: "card", group: "account" },
+export const NAV: { id: ViewId; label: string; group: "main" | "work" | "account" }[] = [
+  { id: "home", label: "Home", group: "main" },
+  { id: "projects", label: "Projects", group: "main" },
+  { id: "roblox", label: "Roblox Studio", group: "work" },
+  { id: "blender", label: "Blender", group: "work" },
+  { id: "solar", label: "Solar Smart", group: "work" },
+  { id: "assets", label: "Assets", group: "work" },
+  { id: "research", label: "Research", group: "work" },
+  { id: "cloud", label: "Cloud", group: "work" },
+  { id: "history", label: "Task history", group: "work" },
+  { id: "account", label: "Account & Security", group: "account" },
+  { id: "billing", label: "Billing", group: "account" },
 ];
 
 export type MeState =

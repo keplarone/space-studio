@@ -8,8 +8,8 @@ import type { CloudView, JobView } from "../lib/types";
 type Tab = "roblox" | "blender";
 
 const CAPS: Record<Tab, { title: string; text: string }> = {
-  roblox: { title: "Roblox Cloud", text: "Runs long AI build tasks for your Roblox experience on Keplar's servers — generating and reviewing scripts and systems without keeping your computer busy." },
-  blender: { title: "Blender Cloud", text: "Runs Blender jobs on Keplar's servers — scripted scene generation and batch processing — so heavy work doesn't tie up your machine." },
+  roblox: { title: "Roblox Cloud", text: "Runs long build tasks for your Roblox experience on Keplar's servers, such as generating and reviewing scripts and systems, so your computer stays free." },
+  blender: { title: "Blender Cloud", text: "Runs Blender jobs on Keplar's servers, such as scripted scene generation and batch processing, so heavy work doesn't tie up your computer." },
 };
 
 const COMPARE: { plan: string; cloud: boolean }[] = [
@@ -48,7 +48,7 @@ function JobRow({ job }: { job: JobView }) {
         <span className="mono muted small">{job.id}</span>
       </div>
       <dl className="kv kv--inline small">
-        <dt>Status</dt><dd><span className="chip" data-status={bucket(job.status)}>{job.status}</span></dd>
+        <dt>Status</dt><dd className="status" data-status={bucket(job.status)}>{job.status}</dd>
         {job.createdAt && (<><dt>Created</dt><dd>{formatDate(job.createdAt)}</dd></>)}
         {job.updatedAt && (<><dt>Updated</dt><dd>{formatDate(job.updatedAt)}</dd></>)}
         {estimated && (<><dt>Estimated cost</dt><dd>{estimated} <span className="muted">(estimate)</span></dd></>)}
@@ -87,7 +87,7 @@ export function Cloud() {
       setCheckMsg(`Your plan is now ${fresh.plan.name}. Cloud is available.`);
     } else {
       setChecking("idle");
-      setCheckMsg(fresh ? `Your account still shows the ${fresh.plan.name} plan. Upgrades can take a minute to appear — try again shortly.` : "Couldn't check your plan.");
+      setCheckMsg(fresh ? `Your account still shows the ${fresh.plan.name} plan. Upgrades can take a minute to appear. Try again shortly.` : "Could not check your plan.");
     }
   };
 
@@ -96,7 +96,7 @@ export function Cloud() {
 
   return (
     <div className="view-body">
-      <ViewHeader title="Cloud" subtitle="Run long Roblox and Blender jobs on Keplar Cloud." />
+      <ViewHeader title="Cloud" subtitle="Long-running Roblox and Blender jobs on Keplar's servers" />
       <AccountGate what="Cloud" />
       {me?.signedIn && (
         <>
@@ -109,31 +109,32 @@ export function Cloud() {
               <Notice tone="error">{state.msg} <Button size="sm" variant="ghost" onClick={() => void load()}>Retry</Button></Notice>
             ) : data && !data.eligible ? (
               <>
-                <Panel title={<>{CAPS[tab].title} <span className="chip chip--warn">Requires Pro or above</span></>} id="cloud-locked">
+                <Panel title={CAPS[tab].title} id="cloud-locked">
                   <p>{CAPS[tab].text}</p>
+                  <p><strong>Requires the Pro plan or above.</strong></p>
                   {data.reason && <p className="muted">{data.reason}</p>}
-                  <table className="compare">
+                  <table className="table table--narrow">
                     <caption className="sr-only">Cloud availability by plan</caption>
                     <thead><tr><th scope="col">Plan</th><th scope="col">Cloud</th></tr></thead>
                     <tbody>
                       {COMPARE.map((c) => (
                         <tr key={c.plan} data-current={me.plan.name.toLowerCase() === c.plan.toLowerCase() ? "true" : undefined}>
-                          <th scope="row">{c.plan}{me.plan.name.toLowerCase() === c.plan.toLowerCase() && <span className="chip">Current</span>}</th>
+                          <th scope="row">{c.plan}{me.plan.name.toLowerCase() === c.plan.toLowerCase() && <span className="muted"> (current)</span>}</th>
                           <td>{c.cloud ? "Included" : "Not included"}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   <div className="row">
-                    <Button variant="primary" icon="external" onClick={() => void openExternal(PLANS_URL)}>Upgrade on keplar.one</Button>
-                    <Button variant="secondary" status={checking} onClick={() => void checkAgain()}>I've upgraded — check again</Button>
+                    <Button variant="primary" onClick={() => void openExternal(PLANS_URL)}>Upgrade on keplar.one</Button>
+                    <Button variant="secondary" status={checking} successLabel="Cloud available" onClick={() => void checkAgain()}>Check my plan again</Button>
                   </div>
                   {checkMsg && <p className="muted small" role="status">{checkMsg}</p>}
                 </Panel>
               </>
             ) : jobs.length === 0 ? (
-              <EmptyState icon="cloud" title={`No ${CAPS[tab].title} jobs yet`}>
-                Jobs you start will appear here with their status and usage.
+              <EmptyState title={`No ${CAPS[tab].title} jobs`}>
+                Jobs you start are listed here with their status and usage.
               </EmptyState>
             ) : (
               <>
