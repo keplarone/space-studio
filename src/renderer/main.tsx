@@ -8,6 +8,7 @@ import "./styles/tokens.css";
 import "./styles/app.css";
 import "./styles/shell.css";
 import "./styles/pages.css";
+import "./styles/chat.css";
 import { initMotion } from "./lib/motion";
 import { App } from "./App";
 
