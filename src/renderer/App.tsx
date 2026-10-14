@@ -112,7 +112,8 @@ function Gate() {
   const [arriving, setArriving] = useState(false);
   const wasOnboarding = useRef(false);
   const arrived = useCallback(() => setArriving(false), []);
-  const onboardingDone = !me?.signedIn || me.onboarding == null || me.onboarding.completed;
+  // Under 13 and waiting for a parent: onboarding shows its waiting screen even when the answers are complete.
+  const onboardingDone = !me?.signedIn || me.onboarding == null || (me.onboarding.completed && me.onboarding.parentConsent !== "awaiting_parent");
 
   useEffect(() => {
     if (me?.signedIn && !onboardingDone) wasOnboarding.current = true;

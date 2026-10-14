@@ -10,6 +10,7 @@ import "./styles/shell.css";
 import "./styles/pages.css";
 import "./styles/chat.css";
 import "./styles/dashboard.css";
+import "./styles/entry.css";
 import { initMotion } from "./lib/motion";
 import { App } from "./App";
 
