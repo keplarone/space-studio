@@ -13,7 +13,7 @@ import type { ModelView } from "../lib/types";
 /** Static registry, used only to describe the models when the server's list is unavailable. Never marked available. */
 const REGISTRY_MODELS: ModelView[] = MODELS.map((m) => ({
   id: m.id, name: m.name, tagline: m.tagline, strengths: [...m.strengths], capabilities: [...m.capabilities], speed: m.speed,
-  creditNote: m.creditNote, available: false, provider: m.underlying.provider, underlyingModel: m.underlying.name,
+  creditNote: m.creditNote, available: false,
   customization: m.customization, minPlan: m.minPlan === "team" || m.minPlan === "enterprise" ? "pro" : m.minPlan,
 }));
 
@@ -127,7 +127,7 @@ export function Chat({ workspace, compact = false, placeholder }: { workspace: W
               <MessageBody text={m.content} />
               {m.usage && (
                 <footer className="msg__meta" aria-label="Usage for this reply">
-                  <span title="Model that served this reply">{m.served?.name}{m.served?.underlyingModel ? ` · ${m.served.underlyingModel}` : ""}</span>
+                  <span title="Model that served this reply">{m.served?.name}</span>
                   <span>{m.usage.promptTokens.toLocaleString()} in / {m.usage.completionTokens.toLocaleString()} out tokens</span>
                   <span>{m.usage.units.toLocaleString()} credits</span>
                   <span>{(m.usage.latencyMs / 1000).toFixed(1)}s</span>

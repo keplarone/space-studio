@@ -14,14 +14,14 @@ GET  /api/space-studio/me
   Signed out -> 200 { signedIn: false, ...defaults } (models still listed).
 
 ModelView = { id: "orbit"|"nebula"|"solar"|"nova", name: "Orbit 3.8"|..., tagline, strengths: string[], capabilities: string[],
-  speed: "fastest"|"fast"|"steady"|"thorough", creditNote: string, available: boolean, ownership: "Keplar configuration on Anthropic Claude",
-  provider: "Anthropic", underlyingModel: string /* e.g. "Claude Haiku 4.5" */, customization: "specialized configuration (no fine-tuning)",
+  speed: "fastest"|"fast"|"steady"|"thorough", creditNote: string, available: boolean, ownership: "Keplar model configuration",
+  customization: "specialized configuration (no fine-tuning)",
   minPlan: "free"|"plus"|"pro" }
 
 Identity = { provider: "keplar"|"google"|"roblox", linked: boolean, label: string|null /* username/email */, linkedAt: string|null, canUnlink: boolean, unlinkBlockedReason: string|null }
 
 POST /api/space-studio/chat   { model: "orbit"|"nebula"|"solar"|"nova", messages: [{role:"user"|"assistant", content:string}], workspace: "roblox"|"blender"|"general", allowEscalation?: boolean }
-  -> { text: string, served: { id, name, underlyingModel }, requested: id, escalation: { suggested: boolean, to: id|null, reason: string|null },
+  -> { text: string, served: { id, name }, requested: id, escalation: { suggested: boolean, to: id|null, reason: string|null },
        usage: { promptTokens, completionTokens, usd, units, latencyMs } }
   401 signed out; 402 out of credits / plan; 403 code "roblox_link_required"; 503 model unavailable.
 

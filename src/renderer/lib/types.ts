@@ -12,8 +12,6 @@ export interface ModelView {
   creditNote: string;
   available: boolean;
   ownership?: string;
-  provider: string;
-  underlyingModel: string;
   customization: string;
   minPlan: "free" | "plus" | "pro";
 }
@@ -56,7 +54,7 @@ export interface ChatUsage {
 
 export interface ChatResponse {
   text: string;
-  served: { id: ModelId; name: string; underlyingModel: string };
+  served: { id: ModelId; name: string };
   requested: ModelId;
   escalation: { suggested: boolean; to: ModelId | null; reason: string | null };
   usage: ChatUsage;

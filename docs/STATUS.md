@@ -5,7 +5,7 @@ Only what has actually run is marked as working. Everything else is listed as no
 ## Working and tested
 | Area | What exists | Evidence |
 |---|---|---|
-| Model registry | Orbit 3.8 / Nebula 4.2 / Solar 5.4 / Nova 5.5 as distinct Claude-based configurations: prompts, tools, budgets, escalation. No fine-tuning is claimed. | `test/core.test.ts` |
+| Model registry | Orbit 3.8 / Nebula 4.2 / Solar 5.4 / Nova 5.5 as distinct model configurations: prompts, tools, budgets, escalation. No fine-tuning is claimed. | `test/core.test.ts` |
 | Routing | The explicit model choice is honored. Escalation is suggested, and only switches when the user allowed it. The model that answered is recorded. | `test/core.test.ts`, keplar-live `tests/space-studio.test.ts` |
 | Plans and cloud gate | Free and Plus are denied cloud. Pro, Team and Enterprise are allowed within concurrency and minute limits. Expired, canceled, revoked and lapsed plans count as Free. The server re-checks at job creation and on every worker slice. | Both test suites |
 | Billing events | HMAC and timestamp check, idempotent event ids, out-of-order protection | keplar-live tests |

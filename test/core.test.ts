@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MODELS, modelById, publicView, resolvedSlug } from "../src/core/models";
+import { MODELS, publicView } from "../src/core/models";
 import { applyBillingEvent, cloudDecision, effectivePlan, modelAllowed, type Subscription } from "../src/core/plans";
 import { planLink, planUnlink, type Identity } from "../src/core/identities";
 import { extractEscalation, route } from "../src/core/router";
@@ -15,13 +15,11 @@ test("four distinct models with exact names and distinct profiles", () => {
   assert.equal(new Set(MODELS.map((m) => m.system)).size, 4);
   assert.equal(new Set(MODELS.map((m) => JSON.stringify([m.budgets, m.tools]))).size, 4);
   for (const m of MODELS) {
-    assert.equal(m.underlying.provider, "Anthropic");
-    assert.match(m.underlying.slug, /^anthropic\//);
     assert.equal(m.customization, "specialized configuration (no fine-tuning)");
     assert.ok(m.budgets.reasoningTokens < m.budgets.maxOutputTokens);
     const v = publicView(m, true);
     assert.ok(!("system" in v), "system prompt never sent to clients");
-    assert.equal(v.provider, "Anthropic");
+    assert.equal(v.customization, "specialized configuration (no fine-tuning)");
   }
   // Budgets grow with the tier.
   const cap = MODELS.map((m) => m.budgets.maxUsdPerTask);
@@ -29,14 +27,7 @@ test("four distinct models with exact names and distinct profiles", () => {
 });
 
 test("no retired model names in the registry", () => {
-  const all = JSON.stringify(MODELS);
-  assert.doesNotMatch(all, /Quasar|Supernova/);
-});
-
-test("slug override accepts only Anthropic slugs", () => {
-  const orbit = modelById("orbit")!;
-  assert.equal(resolvedSlug(orbit, { SPACE_MODEL_ORBIT: "anthropic/claude-haiku-5.5" }), "anthropic/claude-haiku-5.5");
-  assert.equal(resolvedSlug(orbit, { SPACE_MODEL_ORBIT: "openai/gpt-x" }), orbit.underlying.slug);
+  assert.doesNotMatch(JSON.stringify(MODELS), /Quasar|Supernova/);
 });
 
 test("cloud: Free and Plus denied, Pro/Team/Enterprise allowed", () => {

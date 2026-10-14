@@ -1,6 +1,6 @@
 # Space Studio
 
-Space Studio is Keplar's desktop development environment for **Roblox Studio** and **Blender**, with four AI model configurations built on Anthropic Claude: **Orbit 3.8**, **Nebula 4.2**, **Solar 5.4** and **Nova 5.5**. It also gives Pro and higher plans Roblox Cloud and Blender Cloud.
+Space Studio is Keplar's desktop development environment for **Roblox Studio** and **Blender**, with four AI model configurations: **Orbit 3.8**, **Nebula 4.2**, **Solar 5.4** and **Nova 5.5**. It also gives Pro and higher plans Roblox Cloud and Blender Cloud.
 
 - Desktop app: Electron (`src/main`) and a React renderer (`src/renderer`).
 - Shared logic: `src/core`, which holds the model registry, plans and entitlements, account-linking rules and routing.

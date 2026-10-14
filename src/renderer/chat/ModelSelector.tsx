@@ -65,8 +65,6 @@ export function ModelSelector({ models, value, onChange, offline = false }: { mo
                 </button>
                 <Disclosure summary="Technical details">
                   <dl className="kv">
-                    <dt>Provider</dt><dd>{m.provider}</dd>
-                    <dt>Underlying model</dt><dd>{m.underlyingModel}</dd>
                     <dt>Customization</dt><dd>{m.customization ? sentence(m.customization) : "Configuration only, not fine-tuned"}</dd>
                   </dl>
                 </Disclosure>

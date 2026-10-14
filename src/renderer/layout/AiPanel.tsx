@@ -37,7 +37,7 @@ function WorkspaceSummary({ ws }: { ws: "roblox" | "blender" }) {
           <h3 className="ai-summary__title">Selected model</h3>
           <p className="small"><strong>{model.name}</strong>: {model.tagline}</p>
           <p className="muted small">{model.creditNote}</p>
-          <p className="muted small">Runs on {model.provider} {model.underlyingModel} with a Space Studio configuration. Not fine-tuned.</p>
+          <p className="muted small">A Space Studio model configuration. Not fine-tuned.</p>
         </>
       )}
     </div>
