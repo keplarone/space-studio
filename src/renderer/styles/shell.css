@@ -36,7 +36,8 @@
 }
 
 /* ---------- Top bar ---------- */
-.topbar { position: relative; z-index: 20; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; padding: 16px 22px 10px; }
+.topbar { position: relative; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 22px 10px; min-height: 78px; }
+.topbar .tabs { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); }
 .topbar__l { justify-self: start; min-width: 0; }
 .topbar__r { justify-self: end; display: flex; align-items: center; gap: 10px; }
 
@@ -182,4 +183,15 @@
 @media (prefers-reduced-motion: reduce) {
   .shockwave, .arrival-flash { display: none; }
   .shell[data-arriving] .topbar, .shell[data-arriving] .main { animation: none; }
+}
+
+/* Narrow windows: the pills keep their pictures and drop their text so the centred tabs never collide. */
+@media (max-width: 1320px) {
+  .me__who, .space-pill span { display: none; }
+  .me__pill { padding-right: 6px; }
+  .space-pill { padding: 0 11px; }
+}
+@media (max-width: 1080px) {
+  .tabs__tab { padding: 0 12px; font-size: 12px; }
+  .rbx__more { display: none; }
 }

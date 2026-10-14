@@ -92,7 +92,7 @@ export function Cloud() {
   };
 
   const data = state.kind === "ready" ? state.data : null;
-  const jobs = data ? data[tab].jobs : [];
+  const jobs = (data?.[tab]?.jobs ?? []) as JobView[];
 
   return (
     <div className="view-body">
