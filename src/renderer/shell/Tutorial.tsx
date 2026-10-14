@@ -9,7 +9,7 @@ interface TourStep {
 }
 
 const STEPS: TourStep[] = [
-  { id: "profile", selectors: ['[data-tour="profile"]'], title: "Your account", body: "Your account. Hover to see your plan and credits." },
+  { id: "profile", selectors: ['[data-tour="profile"]'], title: "Your account", body: "Your picture and name. Hover to see your plan and the credits you have left." },
   { id: "nav", selectors: ['[data-tour="nav"]'], title: "Everything in one bar", body: "Jump between Home, your Dashboard, Roblox Studio, Blender, Cloud, Plans and Account." },
   { id: "robux", selectors: ['[data-tour="robux"]'], title: "Robux, live", body: "Robux your experiences earn. Hover to watch pending Robux count up live." },
   { id: "prompt", selectors: ['[data-tour="prompt"]'], title: "Ask for anything", body: "Describe what you want. Pick a model and effort, then send — every prompt jumps to warp." },
