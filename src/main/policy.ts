@@ -43,10 +43,22 @@ export function isAllowedExternal(raw: unknown): boolean {
 
 export type SignInProvider = "keplar" | "google" | "roblox";
 
+/**
+ * True once the sign-in window has landed on a keplar.one page that means "signed in": anything outside the sign-in pages,
+ * the auth API, the provider start routes and two-factor (which still needs the person).
+ */
+export function isSignInFinished(raw: string, base = API_BASE): boolean {
+  try {
+    const u = new URL(raw);
+    if (u.origin !== base) return false;
+    return !["/signin", "/two-factor", "/api/auth", "/api/space-studio/auth"].some((p) => u.pathname === p || u.pathname.startsWith(`${p}/`) || u.pathname.startsWith(`${p}?`));
+  } catch { return false; }
+}
+
 /** Where each sign-in method starts on keplar.one. Anything unknown falls back to Keplar's own sign-in page. */
 export function signInStartUrl(provider: unknown, base = API_BASE): string {
   const next = encodeURIComponent("/space-studio");
-  if (provider === "google") return `${base}/signin?provider=google&next=${next}`;
+  if (provider === "google") return `${base}/api/space-studio/auth/google/start?next=${next}`;
   if (provider === "roblox") return `${base}/api/space-studio/auth/roblox/start?next=${next}`;
   return `${base}/signin?next=${next}`;
 }

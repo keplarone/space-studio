@@ -45,8 +45,15 @@ test("the version the app shows matches package.json", async () => {
 test("sign-in start URLs stay on keplar.one and default to Keplar sign-in", async () => {
   const { signInStartUrl } = await import("../src/main/policy");
   assert.equal(signInStartUrl("keplar"), "https://keplar.one/signin?next=%2Fspace-studio");
-  assert.equal(signInStartUrl("google"), "https://keplar.one/signin?provider=google&next=%2Fspace-studio");
+  assert.equal(signInStartUrl("google"), "https://keplar.one/api/space-studio/auth/google/start?next=%2Fspace-studio");
   assert.equal(signInStartUrl("roblox"), "https://keplar.one/api/space-studio/auth/roblox/start?next=%2Fspace-studio");
   assert.equal(signInStartUrl("https://evil.example"), "https://keplar.one/signin?next=%2Fspace-studio");
   assert.equal(signInStartUrl(undefined), "https://keplar.one/signin?next=%2Fspace-studio");
+});
+
+test("the sign-in window stays open through sign-in pages and two-factor", async () => {
+  const { isSignInFinished } = await import("../src/main/policy");
+  for (const u of ["https://keplar.one/signin?next=x", "https://keplar.one/two-factor?next=x", "https://keplar.one/api/auth/space-studio/roblox/callback?code=1", "https://keplar.one/api/space-studio/auth/google/start", "https://accounts.google.com/o/oauth2", "https://evil.example/space-studio", "not a url"]) assert.equal(isSignInFinished(u), false, u);
+  for (const u of ["https://keplar.one/space-studio", "https://keplar.one/welcome?next=%2Fspace-studio", "https://keplar.one/"]) assert.equal(isSignInFinished(u), true, u);
+  assert.equal(isSignInFinished("https://keplar.one/signin-help"), true);
 });

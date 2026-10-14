@@ -10,7 +10,7 @@
 import { app, BrowserWindow, clipboard, ipcMain, session, shell, type IpcMainInvokeEvent, type WebContents } from "electron";
 import path from "node:path";
 import { detect } from "./detect";
-import { API_BASE, apiUrl, isAllowedAuthNavigation, isAllowedExternal, signInStartUrl, validateApiRequest } from "./policy";
+import { API_BASE, apiUrl, isAllowedAuthNavigation, isAllowedExternal, isSignInFinished, signInStartUrl, validateApiRequest } from "./policy";
 
 const PARTITION = "persist:space-studio";
 const RENDERER_CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
@@ -106,9 +106,7 @@ app.whenReady().then(() => {
 
   handle("space:api", (_e, req) => api(req));
   handle("space:signIn", async (_e, provider) => {
-    await authWindow(signInStartUrl(provider), (url) => {
-      try { const u = new URL(url); return u.origin === API_BASE && !u.pathname.startsWith("/signin") && !u.pathname.startsWith("/api/auth") && !u.pathname.startsWith("/api/space-studio/auth"); } catch { return false; }
-    });
+    await authWindow(signInStartUrl(provider), (url) => isSignInFinished(url));
     return { signedIn: await signedIn() };
   });
   handle("space:signOut", async () => {
