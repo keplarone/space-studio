@@ -6,8 +6,9 @@
   --c-space-2: #0a0a0c;   /* raised panel */
   --c-space-3: #141417;   /* hover / inset */
   --c-space-4: #1e1e23;   /* active / pressed */
-  --c-line: rgba(255, 255, 255, 0.08);
-  --c-line-strong: rgba(255, 255, 255, 0.16);
+  /* No outlines: lines are transparent; surfaces separate by depth and light instead. */
+  --c-line: transparent;
+  --c-line-strong: transparent;
 
   --c-text: #f4f4f6;          /* ~19:1 on black */
   --c-text-2: #b3b3bb;        /* ~10:1 */
@@ -29,7 +30,7 @@
 
   --c-primary: #ffffff;       /* primary button is white on black */
   --c-primary-text: #000000;
-  --c-focus: #8ab8ff;
+  --c-focus: #c39bff;
 
   --c-panel: rgba(6, 6, 8, 0.9);
   --c-panel-solid: var(--c-space-2);
@@ -69,10 +70,11 @@
   --r-lg: 16px;
   --r-xl: 22px;
   --r-pill: 999px;
+  --r-card: 28px;
 
   /* Borders & elevation */
-  --border: 1px solid var(--c-line);
-  --border-strong: 1px solid var(--c-line-strong);
+  --border: 0 solid transparent;
+  --border-strong: 0 solid transparent;
   --shadow-pop: 0 18px 48px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
 
   /* Sizes */

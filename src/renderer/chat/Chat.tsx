@@ -129,7 +129,7 @@ export function Chat({ workspace, compact = false, placeholder }: { workspace: W
                 <footer className="msg__meta" aria-label="Usage for this reply">
                   <span title="Model that served this reply">{m.served?.name}</span>
                   <span>{m.usage.promptTokens.toLocaleString()} in / {m.usage.completionTokens.toLocaleString()} out tokens</span>
-                  <span>{m.usage.units.toLocaleString()} credits</span>
+                  <span>{(m.usage.credits ?? m.usage.units ?? 0).toLocaleString()} credits</span>
                   <span>{(m.usage.latencyMs / 1000).toFixed(1)}s</span>
                 </footer>
               )}

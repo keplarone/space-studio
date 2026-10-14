@@ -6,6 +6,7 @@ import "@fontsource/montserrat/600.css";
 import "@fontsource/montserrat/700.css";
 import "./styles/tokens.css";
 import "./styles/app.css";
+import "./styles/shell.css";
 import { initMotion } from "./lib/motion";
 import { App } from "./App";
 

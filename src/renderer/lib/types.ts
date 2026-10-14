@@ -41,14 +41,69 @@ export interface Me {
   providers: { keplar: true; google: boolean; roblox: boolean };
   robloxRequired: boolean;
   robloxLinked: boolean;
-  pricing: { published: boolean; note: string };
+  pricing: Pricing;
+  /** null when signed out. */
+  credits: CreditBalance | null;
+  /** null when signed out (or from an older keplar.one). */
+  profile?: { displayName: string; username: string | null; avatarUrl: string | null } | null;
+  onboarding?: { completed: boolean; ageBand: AgeBand | null; parentConsent: "not_needed" | "awaiting_parent" | "approved" | string } | null;
+}
+
+export type AgeBand = "under13" | "13to17" | "adult";
+
+export type CreditAllowance =
+  | { kind: "windows"; perFiveHours: number; perWeek: number }
+  | { kind: "monthly"; perMonth: number; rollover: boolean }
+  | { kind: "custom" };
+
+export interface Pricing {
+  published: boolean;
+  checkoutOpen?: boolean;
+  note: string;
+  prices?: Record<PlanId, { monthlyUsd: number | null; yearlyUsd: number | null; perSeat: boolean }>;
+  allowances?: Record<PlanId, CreditAllowance>;
+  packs?: readonly { id: string; credits: number; usd: number }[];
+  rules?: readonly string[];
+  typicalCredits?: Record<ModelId, number>;
+}
+
+export interface CreditBalance {
+  plan: PlanId;
+  remaining: number;
+  limitedBy: "five_hours" | "week" | "month" | "custom";
+  resetsAt: string | null;
+  windows: { label: string; used: number; limit: number; resetsAt: string }[];
+}
+
+export type Effort = "low" | "medium" | "high" | "extra" | "ultracode";
+
+export interface Experience {
+  universeId: string;
+  placeId: string | null;
+  name: string;
+  iconUrl: string | null;
+  addedAt: string;
+  beacon: { connected: boolean; lastEventAt: string | null };
+}
+
+export type StatsRange = "1h" | "24h" | "7d" | "30d" | "90d";
+export interface Point { t: string; v: number }
+export interface Stats {
+  range: StatsRange;
+  universe: string;
+  now: { playing: number; visits: number; favorites: number; at: string } | null;
+  ccu: { points: Point[]; peak: number | null; sampledSince: string | null };
+  revenue: { connected: boolean; points: Point[]; total: number; sales: number; bySource: { product: number; gamepass: number } };
+  robux: { earned: number | null; pending: number | null; pendingWindowHours: number; lastSaleAt: string | null };
 }
 
 export interface ChatUsage {
   promptTokens: number;
   completionTokens: number;
-  usd: number;
-  units: number;
+  /** Space Studio credits this answer used (keplar.one >= credits release). */
+  credits?: number;
+  /** Older keplar.one responses. */
+  units?: number;
   latencyMs: number;
 }
 
@@ -58,6 +113,9 @@ export interface ChatResponse {
   requested: ModelId;
   escalation: { suggested: boolean; to: ModelId | null; reason: string | null };
   usage: ChatUsage;
+  credits?: { remaining: number; resetsAt: string | null; limitedBy: CreditBalance["limitedBy"] };
+  effort?: Effort;
+  passes?: number;
 }
 
 export interface ApiError {

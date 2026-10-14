@@ -2,21 +2,17 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api, bridge } from "./bridge";
 import type { ChatSession, Me, ModelId, Workspace } from "./types";
 
-export type ViewId =
-  | "home" | "projects" | "roblox" | "blender" | "solar" | "assets" | "research" | "cloud" | "history" | "account" | "billing";
+export type ViewId = "home" | "dashboard" | "roblox" | "blender" | "cloud" | "billing" | "account";
 
-export const NAV: { id: ViewId; label: string; group: "main" | "work" | "account" }[] = [
-  { id: "home", label: "Home", group: "main" },
-  { id: "projects", label: "Projects", group: "main" },
-  { id: "roblox", label: "Roblox Studio", group: "work" },
-  { id: "blender", label: "Blender", group: "work" },
-  { id: "solar", label: "Solar Smart", group: "work" },
-  { id: "assets", label: "Assets", group: "work" },
-  { id: "research", label: "Research", group: "work" },
-  { id: "cloud", label: "Cloud", group: "work" },
-  { id: "history", label: "Task history", group: "work" },
-  { id: "account", label: "Account & Security", group: "account" },
-  { id: "billing", label: "Billing", group: "account" },
+/** The floating top navigation, in order. */
+export const NAV: { id: ViewId; label: string }[] = [
+  { id: "home", label: "Home" },
+  { id: "dashboard", label: "Dashboard" },
+  { id: "roblox", label: "Roblox Studio" },
+  { id: "blender", label: "Blender" },
+  { id: "cloud", label: "Cloud" },
+  { id: "billing", label: "Plans" },
+  { id: "account", label: "Account" },
 ];
 
 export type MeState =
