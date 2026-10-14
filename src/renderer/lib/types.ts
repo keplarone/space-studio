@@ -163,3 +163,31 @@ export interface ChatSession {
   model: ModelId;
   messages: ChatMessage[];
 }
+
+/* ---------- Onboarding (POST /api/space-studio/profile) ---------- */
+
+export type CreatorRole = "roblox" | "blender" | "both" | "exploring";
+export type CreatorExperience = "new" | "some" | "experienced" | "studio";
+export type CreatorGoal = "ship_faster" | "learn_luau" | "fix_bugs" | "grow_players" | "monetize" | "make_3d_assets";
+
+export interface ProfileRequest {
+  /** YYYY-MM-DD. The server decides the age band; the app only uses it to decide whether to ask for a parent's email. */
+  birthDate: string;
+  role: CreatorRole | null;
+  experience: CreatorExperience | null;
+  goals: CreatorGoal[];
+  workspaces: ("roblox" | "blender")[];
+  consents: { productEmails: boolean; improveWithUsage: boolean };
+  /** Sent when the person is under 13: a parent or guardian approves before AI features unlock. */
+  parentEmail?: string;
+}
+
+/** What the app reads from the reply. Every field is optional so a partial or older server still works. */
+export interface ProfileResponse {
+  ok?: boolean;
+  onboarding?: Me["onboarding"];
+  parentConsent?: string | { status?: string; emailSent?: boolean; email?: string | null } | null;
+  emailSent?: boolean;
+  error?: string;
+  code?: string;
+}
