@@ -11,7 +11,10 @@ declare global {
 
   interface SpaceBridge {
     api<T = unknown>(req: { method: SpaceMethod; path: string; body?: unknown }): Promise<{ status: number; data: T }>;
-    signIn(): Promise<{ signedIn: boolean }>;
+    /** Opens keplar.one sign-in for one method in a child window. Older builds ignore the argument (Keplar sign-in). */
+    signIn(provider?: "keplar" | "google" | "roblox"): Promise<{ signedIn: boolean }>;
+    /** Puts plain text on the system clipboard (the page itself has no clipboard permission). */
+    copy?(text: string): Promise<boolean>;
     signOut(): Promise<void>;
     linkRoblox(): Promise<{ linked: boolean; error?: string }>;
     openExternal(url: string): Promise<void>;

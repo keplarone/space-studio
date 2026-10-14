@@ -3,7 +3,8 @@ import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("space", {
   api: (req: { method: string; path: string; body?: unknown }) => ipcRenderer.invoke("space:api", { method: req?.method, path: req?.path, body: req?.body }),
-  signIn: () => ipcRenderer.invoke("space:signIn"),
+  signIn: (provider?: string) => ipcRenderer.invoke("space:signIn", typeof provider === "string" ? provider : "keplar"),
+  copy: (text: string) => ipcRenderer.invoke("space:copy", String(text)),
   signOut: () => ipcRenderer.invoke("space:signOut"),
   linkRoblox: () => ipcRenderer.invoke("space:linkRoblox"),
   openExternal: (url: string) => ipcRenderer.invoke("space:openExternal", String(url)),

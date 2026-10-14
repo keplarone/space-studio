@@ -7,10 +7,10 @@
  * script. Navigation and new windows are blocked everywhere except the sign-in window's allow-list. Nothing model-generated
  * is executed here.
  */
-import { app, BrowserWindow, ipcMain, session, shell, type IpcMainInvokeEvent, type WebContents } from "electron";
+import { app, BrowserWindow, clipboard, ipcMain, session, shell, type IpcMainInvokeEvent, type WebContents } from "electron";
 import path from "node:path";
 import { detect } from "./detect";
-import { API_BASE, apiUrl, isAllowedAuthNavigation, isAllowedExternal, validateApiRequest } from "./policy";
+import { API_BASE, apiUrl, isAllowedAuthNavigation, isAllowedExternal, signInStartUrl, validateApiRequest } from "./policy";
 
 const PARTITION = "persist:space-studio";
 const RENDERER_CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
@@ -105,9 +105,9 @@ app.whenReady().then(() => {
   });
 
   handle("space:api", (_e, req) => api(req));
-  handle("space:signIn", async () => {
-    await authWindow(`${API_BASE}/signin?next=%2Fspace-studio`, (url) => {
-      try { const u = new URL(url); return u.origin === API_BASE && !u.pathname.startsWith("/signin") && !u.pathname.startsWith("/api/auth"); } catch { return false; }
+  handle("space:signIn", async (_e, provider) => {
+    await authWindow(signInStartUrl(provider), (url) => {
+      try { const u = new URL(url); return u.origin === API_BASE && !u.pathname.startsWith("/signin") && !u.pathname.startsWith("/api/auth") && !u.pathname.startsWith("/api/space-studio/auth"); } catch { return false; }
     });
     return { signedIn: await signedIn() };
   });
@@ -124,6 +124,11 @@ app.whenReady().then(() => {
     const u = new URL(end);
     const error = u.searchParams.get("link_error");
     return error ? { linked: false, error: error.slice(0, 60) } : { linked: u.searchParams.get("linked") === "roblox" };
+  });
+  handle("space:copy", (_e, text) => {
+    if (typeof text !== "string" || text.length > 100_000) return false;
+    clipboard.writeText(text);
+    return true;
   });
   handle("space:openExternal", async (_e, url) => { if (isAllowedExternal(url)) await shell.openExternal(String(url)); });
   handle("space:detect", () => detect());

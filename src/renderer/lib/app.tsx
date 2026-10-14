@@ -32,7 +32,7 @@ interface AppCtx {
   upsertChat: (c: ChatSession) => void;
   newChat: (ws: Workspace, model: ModelId) => string;
   openChat: (id: string) => void;
-  signIn: () => Promise<void>;
+  signIn: (provider?: "keplar" | "google" | "roblox") => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -93,9 +93,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [chats],
   );
 
-  const signIn = useCallback(async () => {
+  const signIn = useCallback(async (provider: "keplar" | "google" | "roblox" = "keplar") => {
     if (!bridge) return;
-    await bridge.signIn();
+    await bridge.signIn(provider);
     await refreshMe();
   }, [refreshMe]);
   const signOut = useCallback(async () => {

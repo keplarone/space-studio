@@ -83,4 +83,10 @@ export async function openExternal(url: string): Promise<void> {
   if (bridge) await bridge.openExternal(url);
 }
 
+/** Copy text to the clipboard through the app (the page has no clipboard permission). */
+export async function copyText(text: string): Promise<boolean> {
+  if (bridge?.copy) return bridge.copy(text).catch(() => false);
+  try { await navigator.clipboard.writeText(text); return true; } catch { return false; }
+}
+
 export const PLANS_URL = "https://space.keplar.one/#plans";

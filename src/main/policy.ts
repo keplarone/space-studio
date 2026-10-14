@@ -41,6 +41,16 @@ export function isAllowedExternal(raw: unknown): boolean {
   return u.protocol === "https:" && !u.username && !u.password && EXTERNAL_HOSTS.includes(u.hostname);
 }
 
+export type SignInProvider = "keplar" | "google" | "roblox";
+
+/** Where each sign-in method starts on keplar.one. Anything unknown falls back to Keplar's own sign-in page. */
+export function signInStartUrl(provider: unknown, base = API_BASE): string {
+  const next = encodeURIComponent("/space-studio");
+  if (provider === "google") return `${base}/signin?provider=google&next=${next}`;
+  if (provider === "roblox") return `${base}/api/space-studio/auth/roblox/start?next=${next}`;
+  return `${base}/signin?next=${next}`;
+}
+
 /** Navigation inside the sign-in window is allowed only to these origins (keplar.one and the identity providers it uses). */
 export function isAllowedAuthNavigation(raw: string): boolean {
   try {

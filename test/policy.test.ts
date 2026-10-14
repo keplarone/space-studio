@@ -41,3 +41,12 @@ test("the version the app shows matches package.json", async () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
   assert.match(readFileSync("src/main/preload.ts", "utf8"), new RegExp(`version: "${pkg.version.replace(/\./g, "\\.")}"`));
 });
+
+test("sign-in start URLs stay on keplar.one and default to Keplar sign-in", async () => {
+  const { signInStartUrl } = await import("../src/main/policy");
+  assert.equal(signInStartUrl("keplar"), "https://keplar.one/signin?next=%2Fspace-studio");
+  assert.equal(signInStartUrl("google"), "https://keplar.one/signin?provider=google&next=%2Fspace-studio");
+  assert.equal(signInStartUrl("roblox"), "https://keplar.one/api/space-studio/auth/roblox/start?next=%2Fspace-studio");
+  assert.equal(signInStartUrl("https://evil.example"), "https://keplar.one/signin?next=%2Fspace-studio");
+  assert.equal(signInStartUrl(undefined), "https://keplar.one/signin?next=%2Fspace-studio");
+});
