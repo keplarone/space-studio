@@ -10,5 +10,5 @@ contextBridge.exposeInMainWorld("space", {
   openExternal: (url: string) => ipcRenderer.invoke("space:openExternal", String(url)),
   detect: () => ipcRenderer.invoke("space:detect"),
   platform: process.platform,
-  version: "0.1.3",
+  version: "0.2.0",
 });
