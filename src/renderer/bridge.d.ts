@@ -7,6 +7,8 @@ declare global {
   interface SpaceDetectResult {
     blender: { path: string; version: string | null }[];
     robloxStudio: { path: string }[];
+    /** Present when the scan failed or timed out. */
+    troubleshoot?: import("../core/troubleshoot").Troubleshoot;
   }
 
   interface SpaceBridge {
@@ -15,6 +17,11 @@ declare global {
     signIn(provider?: "keplar" | "google" | "roblox"): Promise<{ signedIn: boolean }>;
     /** Puts plain text on the system clipboard (the page itself has no clipboard permission). */
     copy?(text: string): Promise<boolean>;
+    /** Local (free) engine on this computer. Absent in builds before 0.3. */
+    local?: {
+      status(config: import("../core/local").LocalConfig): Promise<import("../core/local").LocalStatus>;
+      chat(req: import("../core/local").LocalChatRequest): Promise<import("../core/local").LocalChatResult>;
+    };
     signOut(): Promise<void>;
     linkRoblox(): Promise<{ linked: boolean; error?: string }>;
     openExternal(url: string): Promise<void>;

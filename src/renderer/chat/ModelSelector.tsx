@@ -4,6 +4,8 @@ import { motionPrefs, usePresence } from "../lib/motion";
 import type { Effort, ModelId, ModelView } from "../lib/types";
 import { EFFORTS, PLAN_LABEL, SPEED_LABEL, effortLabel, type ChatPrefs } from "./prefs";
 import { UltraPill } from "./Ultracode";
+import { LocalPanel } from "./LocalPanel";
+import { useLocalEngine } from "../lib/localEngine";
 
 const STANDARD = EFFORTS.filter((e) => e.id !== "ultracode");
 
@@ -28,7 +30,16 @@ export function ModelSelector({ prefs, placement = "up", disabled = false }: { p
   const ids = useId();
   const current = prefs.models.find((m) => m.id === prefs.model);
   const typical = me?.pricing?.typicalCredits;
-  const ultra = prefs.effort === "ultracode";
+  const engine = useLocalEngine();
+  const local = engine.mode === "local" && engine.available;
+  const ultra = !local && prefs.effort === "ultracode";
+
+  // Troubleshooting cards can ask for the settings ("Local engine settings").
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("space:open-picker", onOpen);
+    return () => window.removeEventListener("space:open-picker", onOpen);
+  }, []);
 
   const close = (refocus = true) => {
     setOpen(false);
@@ -131,13 +142,23 @@ export function ModelSelector({ prefs, placement = "up", disabled = false }: { p
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={mounted ? `${ids}-pop` : undefined}
-        aria-label={`Model and effort: ${current?.name ?? "none"}, ${effortLabel(prefs.effort)} effort`}
+        aria-label={local ? `Local engine: ${engine.model ?? "no model chosen"}` : `Model and effort: ${current?.name ?? "none"}, ${effortLabel(prefs.effort)} effort`}
         disabled={disabled}
         onClick={() => (open ? close() : setOpen(true))}
       >
-        <span className="picker__model">{current?.name ?? "Choose a model"}</span>
-        <span className="picker__sep" aria-hidden="true" />
-        {ultra ? <UltraPill size="sm" active /> : <span className="picker__effort">{effortLabel(prefs.effort)}</span>}
+        {local ? (
+          <>
+            <span className="picker__model">{engine.model ?? "Local model"}</span>
+            <span className="picker__sep" aria-hidden="true" />
+            <span className="picker__free">Local · free</span>
+          </>
+        ) : (
+          <>
+            <span className="picker__model">{current?.name ?? "Choose a model"}</span>
+            <span className="picker__sep" aria-hidden="true" />
+            {ultra ? <UltraPill size="sm" active /> : <span className="picker__effort">{effortLabel(prefs.effort)}</span>}
+          </>
+        )}
         <span className="picker__chev" aria-hidden="true" />
       </button>
 
@@ -152,6 +173,14 @@ export function ModelSelector({ prefs, placement = "up", disabled = false }: { p
           data-placement={placement}
           onKeyDown={onPopKey}
         >
+          {engine.available && (
+            <div className="engine-toggle" role="radiogroup" aria-label="Engine">
+              <span className="engine-toggle__ind" data-local={local || undefined} aria-hidden="true" />
+              <button type="button" role="radio" aria-checked={!local} onClick={() => engine.setMode("cloud")}>Cloud models</button>
+              <button type="button" role="radio" aria-checked={local} onClick={() => engine.setMode("local")}>Local (free)</button>
+            </div>
+          )}
+          {local ? <LocalPanel onDone={() => close()} /> : (<>
           <p className="picker__kicker" id={`${ids}-models`}>Model</p>
           <div className="picker__models" role="listbox" aria-labelledby={`${ids}-models`} onKeyDown={onListKey}>
             {prefs.models.map((m, i) => {
@@ -243,6 +272,7 @@ export function ModelSelector({ prefs, placement = "up", disabled = false }: { p
             </button>
           </div>
           <p className="picker__note" id={`${ids}-note`} data-ultra={shownEffort === "ultracode" || undefined} key={shownEffort}>{note}</p>
+          </>)}
         </div>
       )}
     </div>

@@ -10,6 +10,8 @@
 import { app, BrowserWindow, clipboard, ipcMain, session, shell, type IpcMainInvokeEvent, type WebContents } from "electron";
 import path from "node:path";
 import { detect } from "./detect";
+import { safely } from "./safe";
+import { localChat, localStatus, validateChat, validateConfig } from "../desktop/local_ai_bridge";
 import { API_BASE, apiUrl, isAllowedAuthNavigation, isAllowedExternal, isSignInFinished, signInStartUrl, validateApiRequest } from "./policy";
 
 const PARTITION = "persist:space-studio";
@@ -123,13 +125,30 @@ app.whenReady().then(() => {
     const error = u.searchParams.get("link_error");
     return error ? { linked: false, error: error.slice(0, 60) } : { linked: u.searchParams.get("linked") === "roblox" };
   });
+  // Local (free) engine: only 127.0.0.1, only from our own page, every failure a troubleshooting card (never a throw).
+  handle("space:local:status", async (_e, cfg) => {
+    const config = validateConfig(cfg);
+    if (!config) return { reachable: false, troubleshoot: { kind: "troubleshoot", code: "bad_settings", title: "Local engine settings aren't valid", error: "Choose Ollama or llama.cpp and a port between 1024 and 65535.", steps: ["Open Local engine settings and check the engine and port."], actions: ["open_settings"] } };
+    return localStatus(config);
+  });
+  handle("space:local:chat", async (_e, req) => {
+    const valid = validateChat(req);
+    if (!valid) return { ok: false, troubleshoot: { kind: "troubleshoot", code: "bad_request", title: "That message couldn't be sent to the local model", error: "The request was too long or malformed.", steps: ["Start a new chat or shorten the conversation, then try again."], actions: ["retry"] } };
+    return localChat(valid);
+  });
   handle("space:copy", (_e, text) => {
     if (typeof text !== "string" || text.length > 100_000) return false;
     clipboard.writeText(text);
     return true;
   });
   handle("space:openExternal", async (_e, url) => { if (isAllowedExternal(url)) await shell.openExternal(String(url)); });
-  handle("space:detect", () => detect());
+  handle("space:detect", async () => {
+    // Reads install folders and runs `blender --version`; gated so a stuck Blender can never hang the window.
+    const r = await safely("Looking for Blender and Roblox Studio", () => detect(), {
+      explain: () => ({ steps: ["Check that Blender and Roblox Studio open normally on this computer.", "Then press Scan again."] }),
+    });
+    return r.ok ? r.value : { blender: [], robloxStudio: [], troubleshoot: r.troubleshoot };
+  });
 
   createWindow();
   app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

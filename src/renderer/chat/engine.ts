@@ -1,11 +1,21 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { useApp, uid } from "../lib/app";
-import { api, errorCode, errorMessage } from "../lib/bridge";
+import { api, bridge, errorCode, errorMessage } from "../lib/bridge";
+import { localPrefs } from "../lib/localEngine";
+import { LOCAL_ENGINES, type LocalEngineKind } from "../../core/local";
+import type { TrackId } from "../../core/specialists";
+import type { Troubleshoot } from "../../core/troubleshoot";
 import { fx } from "../lib/fx";
 import type { ChatMessage, ChatResponse, ChatSession, CreditBalance, Effort, ModelId, Workspace } from "../lib/types";
 
 /** A chat message plus what this client also records about the answer (effort and passes). */
-export type Msg = ChatMessage & { effort?: Effort; passes?: number };
+export type Msg = ChatMessage & {
+  effort?: Effort;
+  passes?: number;
+  track?: TrackId;
+  /** Set when the answer came from the Local (free) engine on this computer. */
+  local?: { engine: LocalEngineKind; model: string; track: TrackId };
+};
 
 export interface ChatError {
   status: number;
@@ -15,12 +25,16 @@ export interface ChatError {
   data: Record<string, unknown>;
   model: ModelId;
   effort: Effort;
+  /** Desktop-side failures (Local engine, file or process work): show the troubleshooting card instead. */
+  troubleshoot?: Troubleshoot;
 }
 
 export interface Pending {
   model: ModelId;
   effort: Effort;
   since: number;
+  /** "qwen2.5-coder:7b on Ollama" while the Local engine is answering. */
+  localLabel?: string;
 }
 
 interface ChatRuntime {
@@ -99,8 +113,35 @@ export function useChatEngine() {
       const s1: ChatSession = { ...session, title, model: o.model, messages };
       if (o.from) flights.set(userMsg.id, o.from);
       upsertChat(s1);
-      patch(s1.id, { pending: { model: o.model, effort: o.effort, since: Date.now() }, error: null });
+      const lp = localPrefs();
+      const useLocal = lp.mode === "local" && !!bridge?.local;
+      patch(s1.id, {
+        pending: { model: o.model, effort: o.effort, since: Date.now(), localLabel: useLocal ? `${lp.model ?? "local model"} on ${LOCAL_ENGINES[lp.config.engine].name}` : undefined },
+        error: null,
+      });
       fx.prompt();
+
+      if (useLocal) {
+        // Local (free): straight to the person's own model through the desktop bridge. Nothing goes to keplar.one; no credits.
+        void (async () => {
+          const fail = (t: Troubleshoot) => patch(s1.id, { pending: null, error: { status: 0, code: t.code, message: t.title, data: {}, model: o.model, effort: o.effort, troubleshoot: t } });
+          if (!lp.model) {
+            fail({ kind: "troubleshoot", code: "local_no_model", title: "Pick a local model first", error: "No local model is selected.", steps: ["Open the model picker, choose Local (free), and pick one of the models your local server has.", "No models listed? With Ollama, run `ollama pull qwen2.5-coder:7b`."], actions: ["open_settings", "use_cloud"] });
+            return;
+          }
+          const r = await bridge!.local!.chat({ config: lp.config, model: lp.model, workspace: o.workspace, messages: messages.map((m) => ({ role: m.role, content: m.content })) })
+            .catch((e: unknown) => ({ ok: false as const, troubleshoot: { kind: "troubleshoot" as const, code: "bridge_failed", title: "The local engine didn't respond", error: String(e).slice(0, 400), steps: ["Try again.", "If it keeps happening, restart Space Studio."], actions: ["retry" as const, "use_cloud" as const, "copy_error" as const] } }));
+          if (!r.ok) { fail(r.troubleshoot); return; }
+          const reply: Msg = {
+            id: uid("m"), role: "assistant", content: r.text, at: Date.now(),
+            local: { engine: lp.config.engine, model: r.model, track: r.track },
+            usage: { promptTokens: r.usage.promptTokens ?? 0, completionTokens: r.usage.completionTokens ?? 0, latencyMs: r.usage.latencyMs },
+          };
+          upsertChat({ ...s1, messages: [...messages, reply] });
+          patch(s1.id, { pending: null, error: null });
+        })();
+        return { chatId: s1.id, userId: userMsg.id };
+      }
 
       void (async () => {
         const r = await api<ChatResponse>("POST", "/api/space-studio/chat", {
@@ -113,7 +154,7 @@ export function useChatEngine() {
           const d = r.data;
           const reply: Msg = {
             id: uid("m"), role: "assistant", content: d.text, served: d.served, requested: d.requested, usage: d.usage,
-            escalation: d.escalation, effort: d.effort ?? o.effort, passes: d.passes, at: Date.now(),
+            escalation: d.escalation, effort: d.effort ?? o.effort, passes: d.passes, track: d.track, at: Date.now(),
           };
           upsertChat({ ...s1, messages: [...messages, reply] });
           if (d.credits) liveCredits = d.credits;

@@ -116,6 +116,8 @@ export interface ChatResponse {
   credits?: { remaining: number; resetsAt: string | null; limitedBy: CreditBalance["limitedBy"] };
   effort?: Effort;
   passes?: number;
+  /** The specialist track keplar.one chose for this prompt (core/specialists.ts). */
+  track?: import("../../core/specialists").TrackId;
 }
 
 export interface ApiError {

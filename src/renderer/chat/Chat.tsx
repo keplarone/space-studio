@@ -6,6 +6,9 @@ import type { ChatSession, ModelId, ModelView, Workspace } from "../lib/types";
 import { Composer } from "./Composer";
 import { clearError, flights, remainingCredits, useChatEngine, useChatRuntime, useLiveCredits, type Msg } from "./engine";
 import { ErrorCard } from "./ErrorCard";
+import { TroubleshootCard } from "./TroubleshootCard";
+import { useLocalEngine } from "../lib/localEngine";
+import { TRACKS } from "../../core/specialists";
 import { MessageBody } from "./Message";
 import { effortLabel, PLAN_LABEL, useChatPrefs } from "./prefs";
 import { Thinking } from "./Thinking";
@@ -30,25 +33,38 @@ function bestOther(models: ModelView[], not: ModelId): ModelView | undefined {
   return [...models].reverse().find((m) => m.available && m.id !== not);
 }
 
-function AnswerMeta({ m }: { m: Msg }) {
+function CopyAnswer({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
+  return (
+    <button type="button" className="msg__copy" data-done={copied || undefined}
+      onClick={async () => { if (await copyText(text)) { setCopied(true); window.setTimeout(() => setCopied(false), 1600); } }}>
+      {copied ? "Copied" : "Copy answer"}
+    </button>
+  );
+}
+
+function AnswerMeta({ m }: { m: Msg }) {
   const credits = m.usage?.credits ?? m.usage?.units;
   const passes = m.passes ?? (m.effort === "ultracode" ? 2 : undefined);
+  if (m.local)
+    return (
+      <footer className="msg__meta" aria-label="About this answer">
+        <span className="msg__model">{m.local.model}</span>
+        <span className="msg__local">Local · free</span>
+        <span>{TRACKS[m.local.track].name}</span>
+        {m.usage && <span>{(m.usage.latencyMs / 1000).toFixed(1)}s</span>}
+        <CopyAnswer text={m.content} />
+      </footer>
+    );
   return (
     <footer className="msg__meta" aria-label="About this answer">
       {m.served && <span className="msg__model">{m.served.name}</span>}
       {m.effort && <span data-ultra={m.effort === "ultracode" || undefined}>{m.effort === "ultracode" ? "Ultracode" : `${effortLabel(m.effort)} effort`}</span>}
       {passes != null && passes > 1 && <span>{passes} passes</span>}
+      {m.track && TRACKS[m.track] && <span>{TRACKS[m.track].name}</span>}
       {credits != null && <span>{credits.toLocaleString("en-US")} {credits === 1 ? "credit" : "credits"}</span>}
       {m.usage && <span title={`${m.usage.promptTokens.toLocaleString("en-US")} tokens in, ${m.usage.completionTokens.toLocaleString("en-US")} out`}>{(m.usage.latencyMs / 1000).toFixed(1)}s</span>}
-      <button
-        type="button"
-        className="msg__copy"
-        data-done={copied || undefined}
-        onClick={async () => { if (await copyText(m.content)) { setCopied(true); window.setTimeout(() => setCopied(false), 1600); } }}
-      >
-        {copied ? "Copied" : "Copy answer"}
-      </button>
+      <CopyAnswer text={m.content} />
     </footer>
   );
 }
@@ -67,6 +83,9 @@ export function Chat({ workspace, intro, suggestions = [], placeholder }: ChatPr
   const { me, chats, activeChat, navigate } = useApp();
   const chat: ChatSession | undefined = activeChat[workspace] ? chats[activeChat[workspace]!] : undefined;
   const prefs = useChatPrefs(workspace, me?.models);
+  const { setMode, mode, available: localOk } = useLocalEngine();
+  const localMode = mode === "local" && localOk;
+  const setPickerOpen = (open: boolean) => { if (open) window.dispatchEvent(new CustomEvent("space:open-picker")); };
   const { send, retry } = useChatEngine();
   const rt = useChatRuntime(chat?.id);
   const live = useLiveCredits();
@@ -148,9 +167,9 @@ export function Chat({ workspace, intro, suggestions = [], placeholder }: ChatPr
                   <p className="msg__text">{m.content}</p>
                 </article>
               ) : (
-                <article key={m.id} className="msg" data-role="assistant" data-mid={m.id} data-fresh={m.at >= mountedAt || undefined} aria-label={`${m.served?.name ?? "Assistant"} answered`}>
+                <article key={m.id} className="msg" data-role="assistant" data-mid={m.id} data-fresh={m.at >= mountedAt || undefined} aria-label={`${m.local?.model ?? m.served?.name ?? "Assistant"} answered`}>
                   <header className="msg__head">
-                    <span className="msg__who" data-ultra={m.effort === "ultracode" || undefined}>{m.served?.name ?? "Assistant"}</span>
+                    <span className="msg__who" data-ultra={m.effort === "ultracode" || undefined}>{m.local?.model ?? m.served?.name ?? "Assistant"}</span>
                     {m.served && m.requested && m.served.id !== m.requested && <span className="msg__requested">answered for {nameOf(m.requested)}</span>}
                   </header>
                   <MessageBody text={m.content} reveal={m.at >= mountedAt && !reduced} />
@@ -177,8 +196,17 @@ export function Chat({ workspace, intro, suggestions = [], placeholder }: ChatPr
               ),
             )
           )}
-          {rt.pending && <Thinking modelName={nameOf(rt.pending.model)} effort={rt.pending.effort} since={rt.pending.since} />}
-          {rt.error && chat && !rt.pending && (
+          {rt.pending && <Thinking modelName={rt.pending.localLabel ?? nameOf(rt.pending.model)} effort={rt.pending.localLabel ? undefined : rt.pending.effort} since={rt.pending.since} />}
+          {rt.error?.troubleshoot && chat && !rt.pending && (
+            <TroubleshootCard
+              t={rt.error.troubleshoot}
+              onRetry={() => retryWith(rt.error!.model, rt.error!.effort)}
+              onUseCloud={() => { setMode("cloud"); clearError(chat.id); }}
+              onOpenSettings={() => setPickerOpen(true)}
+              onDismiss={() => clearError(chat.id)}
+            />
+          )}
+          {rt.error && !rt.error.troubleshoot && chat && !rt.pending && (
             <ErrorCard
               error={rt.error}
               models={prefs.models}
@@ -202,7 +230,7 @@ export function Chat({ workspace, intro, suggestions = [], placeholder }: ChatPr
           disabled={!connected || signedOut}
           inputRef={inputRef}
           placeholder={!connected ? "Not connected. Open this in the Space Studio app" : signedOut ? "Sign in to chat" : placeholder ?? "Ask for a change…"}
-          credits={credits}
+          credits={localMode ? null : credits}
           creditsTitle={resetAt ? `Credits left. The window resets ${new Date(resetAt).toLocaleString()}.` : "Credits left"}
         />
       </div>
