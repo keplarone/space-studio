@@ -38,15 +38,19 @@ function find(step: TourStep): HTMLElement | null {
 
 /* ---------- A tiny spring integrator driving SVG attributes and one transform, outside React ---------- */
 
+/** A move always lands within this long (ms), however slow the frames are, so a struggling GPU can never stall the tour. */
+const MAX_MOVE_MS = 900;
+
 interface Spring { x: number; v: number; t: number; k: number; c: number }
 const spring = (x: number, k: number, c: number): Spring => ({ x, v: 0, t: x, k, c });
 
 type Keys = "hx" | "hy" | "hw" | "hh" | "hr" | "cx" | "cy";
 
 /**
- * First-run coach marks. The dim layer is an SVG mask with a rounded hole that springs from target to target; while it travels
- * the hole is blurred along its direction of motion (velocity-driven feGaussianBlur), and the glass card flies after it with the
- * same treatment, lagging a little so the two read as one gesture. Esc skips, arrows move, focus stays on the card.
+ * First-run coach marks. The dim layer is an SVG mask with a rounded hole that springs from target to target, and the glass card
+ * flies after it, lagging a little so the two read as one gesture. Each frame only moves plain shapes and one transform: no SVG
+ * filters are re-run while things travel (re-blurring a full-window mask and a backdrop-filtered card every frame froze the app
+ * on some GPUs). Esc skips, arrows move, focus stays on the card.
  */
 export function Tutorial({ onDone }: { onDone: () => void }) {
   const reduced = useReducedMotion();
@@ -59,11 +63,10 @@ export function Tutorial({ onDone }: { onDone: () => void }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const holeRef = useRef<SVGRectElement>(null);
   const glowRef = useRef<SVGRectElement>(null);
-  const holeBlur = useRef<SVGFEGaussianBlurElement>(null);
-  const cardBlur = useRef<SVGFEGaussianBlurElement>(null);
   const prevFocus = useRef<Element | null>(null);
   const raf = useRef(0);
   const last = useRef(0);
+  const deadline = useRef(0);
   const done = useRef(false);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
@@ -98,24 +101,8 @@ export function Tutorial({ onDone }: { onDone: () => void }) {
       el.setAttribute("height", h.toFixed(2));
       el.setAttribute("rx", rx.toFixed(2));
     }
-    // Directional blur from the hole's centre velocity (px/s).
-    const vx = v.hx.v + v.hw.v / 2, vy = v.hy.v + v.hh.v / 2;
-    const bx = Math.min(22, Math.abs(vx) / 70), by = Math.min(22, Math.abs(vy) / 70);
-    // The blur only exists while the hole travels; at rest the mask is a plain shape (cheap to repaint).
-    const hole = holeRef.current;
-    if (bx + by > 0.2) {
-      holeBlur.current?.setAttribute("stdDeviation", `${bx.toFixed(2)} ${by.toFixed(2)}`);
-      if (hole && !hole.hasAttribute("filter")) hole.setAttribute("filter", "url(#tour-hole-mb)");
-    } else if (hole?.hasAttribute("filter")) hole.removeAttribute("filter");
     const card = cardRef.current;
-    if (card) {
-      card.style.transform = `translate3d(${v.cx.x.toFixed(2)}px, ${v.cy.x.toFixed(2)}px, 0)`;
-      const cbx = Math.min(10, Math.abs(v.cx.v) / 120), cby = Math.min(10, Math.abs(v.cy.v) / 120);
-      if (cbx + cby > 0.35) {
-        cardBlur.current?.setAttribute("stdDeviation", `${cbx.toFixed(2)} ${cby.toFixed(2)}`);
-        card.style.filter = "url(#tour-card-mb)";
-      } else card.style.filter = "";
-    }
+    if (card) card.style.transform = `translate3d(${v.cx.x.toFixed(2)}px, ${v.cy.x.toFixed(2)}px, 0)`;
   }, []);
 
   const tick = useCallback((now: number) => {
@@ -124,8 +111,11 @@ export function Tutorial({ onDone }: { onDone: () => void }) {
     last.current = now;
     const n = Math.max(1, Math.ceil(dt / (1 / 240)));
     const h = dt / n;
+    // Past the deadline everything lands where it's going, so slow frames can't stretch a move into a freeze.
+    const late = now >= deadline.current;
     let moving = false;
     for (const sp of Object.values(s.current)) {
+      if (late) { sp.x = sp.t; sp.v = 0; continue; }
       for (let k = 0; k < n; k++) {
         const a = -sp.k * (sp.x - sp.t) - sp.c * sp.v;
         sp.v += a * h;
@@ -145,6 +135,7 @@ export function Tutorial({ onDone }: { onDone: () => void }) {
       paint();
       return;
     }
+    deadline.current = performance.now() + MAX_MOVE_MS;
     if (!raf.current) { paint(); raf.current = requestAnimationFrame(tick); }
   }, [reduced, paint, tick]);
 
@@ -246,12 +237,6 @@ export function Tutorial({ onDone }: { onDone: () => void }) {
     <div className="tour" data-state={closing ? "out" : "in"}>
       <svg className="tour__dim" width={vp.w} height={vp.h} viewBox={`0 0 ${vp.w} ${vp.h}`} aria-hidden="true" focusable="false">
         <defs>
-          <filter id="tour-hole-mb" x="-50%" y="-50%" width="200%" height="200%" colorInterpolationFilters="sRGB">
-            <feGaussianBlur ref={holeBlur} stdDeviation="0" />
-          </filter>
-          <filter id="tour-card-mb" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur ref={cardBlur} stdDeviation="0" />
-          </filter>
           <mask id="tour-mask" maskUnits="userSpaceOnUse" x="0" y="0" width={vp.w} height={vp.h}>
             <rect x="0" y="0" width={vp.w} height={vp.h} fill="#fff" />
             <rect ref={holeRef} fill="#000" />
