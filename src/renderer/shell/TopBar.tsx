@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NAV, useApp, type ViewId } from "../lib/app";
 import { fx } from "../lib/fx";
 import { useStats } from "../lib/stats";
@@ -55,16 +55,20 @@ function NavTabs() {
   const listRef = useRef<HTMLDivElement>(null);
   const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
   const [moving, setMoving] = useState(false);
-  const measure = () => {
+  // Same position keeps the same object, so a re-measure never re-renders. The effects below are keyed on `measure`: running
+  // them after every render re-queued fonts.ready -> measure -> render forever, which froze the window inside a click.
+  const measure = useCallback(() => {
     const el = listRef.current?.querySelector<HTMLElement>(`[data-id="${view}"]`);
-    if (el) setInd({ x: el.offsetLeft, w: el.offsetWidth });
-  };
-  useLayoutEffect(measure, [view]);
+    if (!el) return;
+    const x = el.offsetLeft, w = el.offsetWidth;
+    setInd((p) => (p && p.x === x && p.w === w ? p : { x, w }));
+  }, [view]);
+  useLayoutEffect(measure, [measure]);
   useEffect(() => {
     window.addEventListener("resize", measure);
     document.fonts?.ready.then(measure).catch(() => undefined);
     return () => window.removeEventListener("resize", measure);
-  });
+  }, [measure]);
   const go = (id: ViewId) => {
     if (id === view) return;
     setMoving(true);

@@ -1,7 +1,7 @@
 {
   "name": "space-studio",
   "productName": "Space Studio",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "description": "Space Studio by Keplar: an AI development environment for Roblox Studio and Blender.",
   "author": "Keplar",
